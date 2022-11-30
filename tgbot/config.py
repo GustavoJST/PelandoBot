@@ -1,3 +1,6 @@
 # any configuration should be stored here
+import os
+from dotenv import load_dotenv
 
-TOKEN = 'token' # configure env if you need;
+load_dotenv()
+TOKEN = os.getenv("API_KEY")
