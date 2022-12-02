@@ -1,4 +1,6 @@
 import asyncio
+import promotion_query
+from multiprocessing import Process
 
 # filters
 from tgbot.filters.admin_filter import AdminFilter
@@ -23,8 +25,6 @@ from telebot.async_telebot import AsyncTeleBot
 # config
 from tgbot import config
 
-db = Database()
-
 
 bot = AsyncTeleBot(config.TOKEN)
 
@@ -38,12 +38,12 @@ register_handlers()
 # Middlewares
 bot.setup_middleware(AntiFloodMiddleware(limit=2, bot=bot))
 
-
 # custom filters
 bot.add_custom_filter(AdminFilter())
 
 async def run():
     await bot.polling(non_stop=True)
 
+Process(target=promotion_query.get_promotions).start()
 
 asyncio.run(run())

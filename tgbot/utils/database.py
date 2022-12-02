@@ -1,8 +1,9 @@
 # aioredis
 from redis import asyncio as aioredis
+from redis import Redis
 
 # Create a connection
-class Database:
+class AsyncDatabase:
     def __init__(self) -> None:
         self.redis = aioredis.from_url("redis://localhost", decode_responses=True)      
     
@@ -28,6 +29,13 @@ class Database:
         
     async def get_active_users(self):
         return await self.redis.lrange("active.users", 0, -1)
+    
+class SyncDatabase:
+    def __init__(self) -> None:
+        self.redis = Redis.from_url("redis://localhost", decode_responses=True)      
 
-# Instantiate database to be used across the project with import.
-db = Database()
+# Instantiate async database to be used across the project with import.
+async_db = AsyncDatabase()
+
+# Instantiate a sync version of the databas to be used in the promotion_query process.
+sync_db = SyncDatabase()
