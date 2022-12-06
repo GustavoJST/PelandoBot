@@ -1,6 +1,5 @@
 import asyncio
 import promotion_query
-from multiprocessing import Process
 
 # filters
 from tgbot.filters.admin_filter import AdminFilter
@@ -13,11 +12,8 @@ from tgbot.handlers.user import any_user
 # middlewares
 from tgbot.middlewares.antiflood_middleware import AntiFloodMiddleware
 
-# states
-from tgbot.states.register_state import Register
-
-# utils
-from tgbot.utils.database import Database
+# synchronous database
+from tgbot.utils.database import sync_db
 
 # telebot
 from telebot.async_telebot import AsyncTeleBot
@@ -25,25 +21,34 @@ from telebot.async_telebot import AsyncTeleBot
 # config
 from tgbot import config
 
-
 bot = AsyncTeleBot(config.TOKEN)
 
-def register_handlers():
-    bot.register_message_handler(admin_user, commands=['start'], admin=True, pass_bot=True)
-    bot.register_message_handler(any_user, commands=['start'], admin=False, pass_bot=True)
-    bot.register_message_handler(anti_spam, commands=['spam'], pass_bot=True)
+def clean_db():
+    sync_db.redis.delete("unsent.promotions.id")
+    if sync_db.redis.exists("promotions.id"):
+        ids = sync_db.redis.lrange("promotions.id", 0, -1)
+        for id in ids:
+            sync_db.redis.delete(f"promotion.{id}.info")
+    
+async def bot_run():
+    def register_handlers():
+        # bot.register_message_handler(admin_user, commands=['start'], admin=True, pass_bot=True)
+        bot.register_message_handler(any_user, commands=['start'], admin=False, pass_bot=True)
+        bot.register_message_handler(anti_spam, commands=['spam'], pass_bot=True)
 
-register_handlers()
+    register_handlers()
 
-# Middlewares
-bot.setup_middleware(AntiFloodMiddleware(limit=2, bot=bot))
+    # Middlewares
+    bot.setup_middleware(AntiFloodMiddleware(limit=2, bot=bot))
 
-# custom filters
-bot.add_custom_filter(AdminFilter())
+    # custom filters
+    bot.add_custom_filter(AdminFilter())
 
-async def run():
     await bot.polling(non_stop=True)
 
-Process(target=promotion_query.get_promotions).start()
-
-asyncio.run(run())
+async def main():
+    clean_db()
+    await asyncio.gather(bot_run(), promotion_query.get_promotions())   
+        
+if __name__ == "__main__":
+    asyncio.run(main())
