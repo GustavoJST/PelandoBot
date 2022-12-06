@@ -73,11 +73,13 @@ async def get_promotions():
             title = promotion["title"]
             promotion_price = "Grátis" if promotion["price"] in [0, None] else f"R$ {float(promotion['price']):.2f}".replace('.', ',')
             promotion_url = f"https://www.pelando.com.br/d/{promotion['id']}"
+            promotion_image = promotion["image"]["original"]
             
             sync_db.redis.hset(f"promotion.{promotion['id']}.info", 
                                mapping={"title": title, 
                                         "price": promotion_price, 
-                                        "url": promotion_url})
+                                        "url": promotion_url,
+                                        "image": promotion_image})
         
         m_sender = Process(target=send_promotions.prepare_process)  
         if sync_db.redis.exists("unsent.promotions.id") and not m_sender.is_alive():

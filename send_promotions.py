@@ -1,7 +1,8 @@
-from tgbot.utils.database import sync_db
 import bot
 import asyncio
 import timeit
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from tgbot.utils.database import sync_db
 
 def prepare_process():
     asyncio.run(send_message())
@@ -18,15 +19,19 @@ async def send_message():
        
         for promotion_id in unsent_promotions:
             promotion_info = sync_db.redis.hgetall(f"promotion.{promotion_id}.info")
-            message = (f"🔥 {promotion_info['title']} 🔥\n\n"
-                        f"💸 Preço: {promotion_info['price']} 💸\n\n "
-                        f"Link: {promotion_info['url']}")
+            image = promotion_info["image"]
+            message = (f"🚨  PROMOÇÃO  🚨\n\n"
+                       f"🔥  {promotion_info['title']}  🔥\n\n"
+                        f"💸  Preço: {promotion_info['price']}  💸")
+            url_button = InlineKeyboardButton("Link para promoção", promotion_info["url"])
+            inline_button = InlineKeyboardMarkup().add(url_button)
             
             sync_db.redis.lrem("unsent.promotions.id", 1, promotion_id)
             sync_db.redis.delete(f"promotion.{promotion_id}.info")
             
             for user_id in active_users_id:
-                tasks.append(asyncio.create_task(bot.bot.send_message(user_id, message)))
+                # tasks.append(asyncio.create_task(bot.bot.send_message(user_id, message, reply_markup=inline_button)))
+                tasks.append(asyncio.create_task(bot.bot.send_photo(user_id, image, message, reply_markup=inline_button)))
             await asyncio.gather(*tasks)
     # TODO: remove this later        
     print(f"send_message - elapsed time = {timeit.default_timer() - start}")
