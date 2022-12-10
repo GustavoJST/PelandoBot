@@ -9,9 +9,8 @@ class AntiFloodMiddleware(BaseMiddleware):
         self.bot = bot
         # Always specify update types, otherwise middlewares won't work
 
-
     async def pre_process(self, message, data):
-        if message.text not in ["/start", "/stop", "/tags", "/spam"]: 
+        if message.text not in ["/start", "/stop", "/tags", "/spam", "/help", "/promo"]: 
             return # make it work only for this command
         if not message.from_user.id in self.last_time:
             # User is not in a dict, so lets add and cancel this function
@@ -24,6 +23,6 @@ class AntiFloodMiddleware(BaseMiddleware):
         # write the time of the last request
         self.last_time[message.from_user.id] = message.date
 
-    # TODO: remover isso caso não seja necessário (99% que não é)
+
     async def post_process(self, message, data, exception):
-        pass
+        pass 
