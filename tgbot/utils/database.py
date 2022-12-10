@@ -11,14 +11,14 @@ class AsyncDatabase:
         await self.redis.set(f"{chat_id}.state", "active", nx=True)
         await self.redis.sadd("active.users.id", chat_id)
         if await self.redis.exists(f"{chat_id}.tags"):
-            self.redis.persist(f"{chat_id}.tags")
+            await self.redis.persist(f"{chat_id}.tags")
         
     async def remove_user(self, chat_id: int) -> None:
         await self.redis.delete(f"{chat_id}.state")
         await self.redis.srem("active.users.id", chat_id)
         await self.redis.delete(f"{chat_id}.tags.button.state")
         if await self.redis.exists(f"{chat_id}.tags"):
-            self.redis.expire(f"{chat_id}.tags", 5184000)  # 2 months in seconds.
+            await self.redis.expire(f"{chat_id}.tags", 5184000)  # 2 months in seconds.
         
     async def set_user_tags(self, chat_id: int, tags: list) -> None:
         await self.redis.sadd(f"{chat_id}.tags", *tags)
