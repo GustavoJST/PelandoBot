@@ -7,24 +7,23 @@ class AsyncDatabase:
     def __init__(self) -> None:
         self.redis = aioredis.from_url("redis://localhost", decode_responses=True)      
     
-    async def add_user(self, chat_id):
-        # Se é já existe uma lista com os ids dos usuários ativos, por que guardar o estado do ID em outro lugar?
-        # Resposta: talvez seja útil devido a necessidade de impedir o usuário de ser adicionado varias vezes.
-        # Exemplo: spammar o comando /start.
-        if not await self.redis.exists(f"{chat_id}.state"):
-            await self.redis.set(f"{chat_id}.state", "active")
-            await self.redis.rpush("active.users.id", chat_id)
+    async def add_user(self, chat_id: int) -> None:
+        await self.redis.set(f"{chat_id}.state", "active", nx=True)
+        await self.redis.sadd("active.users.id", chat_id)
+        if await self.redis.exists(f"{chat_id}.tags"):
+            self.redis.persist(f"{chat_id}.tags")
         
-    async def remove_user(self, chat_id):
+    async def remove_user(self, chat_id: int) -> None:
         await self.redis.delete(f"{chat_id}.state")
-        await self.redis.lrem("active.users.id", 1, chat_id)
+        await self.redis.srem("active.users.id", chat_id)
+        await self.redis.delete(f"{chat_id}.tags.button.state")
+        if await self.redis.exists(f"{chat_id}.tags"):
+            self.redis.expire(f"{chat_id}.tags", 5184000)  # 2 months in seconds.
         
-    async def set_user_tags(self, chat_id, tags):
-        if self.redis.exists(f"{chat_id}.tags"):
-            await self.redis.delete(f"{chat_id}.tags")
-        await self.redis.rpush(f"{chat_id}.tags", tags)
+    async def set_user_tags(self, chat_id: int, tags: list) -> None:
+        await self.redis.sadd(f"{chat_id}.tags", *tags)
             
-    async def unset_user_tags(self, chat_id):
+    async def unset_user_tags(self, chat_id: int) -> None:
         await self.redis.delete(f"{chat_id}.tags")
         
   
