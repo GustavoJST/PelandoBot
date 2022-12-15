@@ -2,7 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
 async def help(message: Message, bot: AsyncTeleBot):
-    await bot.send_message(message.chat.id, "Beep boop. Eu sou o PelandoBot. Um bot de promoções não oficial do Pelando.\n\n" 
+    await bot.send_message(message.chat.id, "Olá. Eu sou o PelandoBot, Um bot de promoções não oficial do Pelando.\n\n" 
                            "Sou um projeto de código aberto. Você pode conferir meu código no link:\n"
                            "https://github.com/GustavoJST/PelandoBot\n\n\n"
                            "O que eu posso fazer por você:\n"
