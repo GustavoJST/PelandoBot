@@ -1,7 +1,7 @@
 from telebot.asyncio_filters import SimpleCustomFilter
-from tgbot.models.users_model import Admin
-from telebot import types
-
+from telebot.types import Message
+from telebot.async_telebot import AsyncTeleBot
+from tgbot.utils.database import async_db
 
 class AdminFilter(SimpleCustomFilter):
     """
@@ -11,15 +11,16 @@ class AdminFilter(SimpleCustomFilter):
     
     key = 'admin'
     
-    def __init__(self, bot):
+    def __init__(self, bot: AsyncTeleBot):
         self._bot = bot
-
-    async def check(self, message):
+        
+    async def check(self, message: Message):
         if message.chat.type in ["private"]:
             return True
-        
-        elif isinstance(message, types.CallbackQuery):
-            result = await self._bot.get_chat_member(message.message.chat.id, message.from_user.id)
-            return result.status ('creator', 'administrator')
-        result = await self._bot.get_chat_member(message.chat.id, message.from_user.id)
-        return result.status in ['creator', 'administrator']
+        # Cache all chat admin IDs in the database for 1 hour.
+        if not await async_db.redis.exists(f"{message.chat.id}.admins"):
+            admin_ids = [admin.user.id for admin in await self._bot.get_chat_administrators(message.chat.id)]
+            await async_db.redis.sadd(f"{message.chat.id}.admins", *admin_ids)
+            await async_db.redis.expire(f"{message.chat.id}.admins", 3600)
+            
+        return True if await async_db.redis.sismember(f"{message.chat.id}.admins", message.from_user.id) else False
