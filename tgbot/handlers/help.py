@@ -1,14 +1,9 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
-
-
 async def help(message: Message, bot: AsyncTeleBot):
     await bot.send_message(message.chat.id, parse_mode="HTML", 
-                           text="Olá. Eu sou o PelandoBot, um bot de promoções não oficial do Pelando.\n\n" 
-                           "Sou um projeto de código aberto. Você pode conferir meu código no link:\n"
-                           "https://github.com/GustavoJST/PelandoBot\n\n\n"
-                           "<b>O que eu posso fazer por você:</b>\n\n"
+                           text="<b>O que eu posso fazer por você:</b>\n\n"
                            "* Entregar novas promoções assim que elas aparecerem no site do Pelando.\n\n"
                            "* Filtrar as novas promoções, entregando apenas as relevantes para você através do sistema de Tags.\n\n"
                            "<b>O que são tags?</b>\n\n"

@@ -10,8 +10,10 @@ async def start(message: Message, bot: AsyncTeleBot):
                            "Tente novamente depois de algum tempo para checar se uma nova vaga foi liberada.")
         return
         
-    await bot.send_message(message.chat.id, "Olá. Eu sou o PelandoBot, um bot não oficial do Pelando.\n\n" 
-                           "Vou te ajudar encontrando, filtrando e te entregando as novas promoções "
+    await bot.send_message(message.chat.id, "Olá. Eu sou o PelandoBot, um bot de monitoramento de promoções não oficial do Pelando.\n\n"
+                           "Sou um projeto open source. Você pode conferir meu código (não tão bonito) no link:\n"
+                           "https://github.com/GustavoJST/PelandoBot\n\n" 
+                           "Posso te ajudar encontrando, filtrando e te entregando as novas promoções "
                            "que surgirem no site do Pelando.\n\n"
                            "Eu possuo um sistema de tags similar a do Pelando, permitindo a você um melhor controle "
                            "sobre quais as promoções que devo lhe entregar. \n\n"
