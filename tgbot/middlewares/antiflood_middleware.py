@@ -5,9 +5,10 @@ class AntiFloodMiddleware(BaseMiddleware):
     def __init__(self, limit, bot) -> None:
         self.last_time = {}
         self.limit = limit
+          # Always specify update types, otherwise middlewares won't work
         self.update_types = ['message']
         self.bot = bot
-        # Always specify update types, otherwise middlewares won't work
+
 
     async def pre_process(self, message, data):
         if message.text not in ["/start", "/stop", "/tags", "/spam", "/help", "/promo"]: 
@@ -24,5 +25,6 @@ class AntiFloodMiddleware(BaseMiddleware):
         self.last_time[message.from_user.id] = message.date
 
 
+    # Don't delete this or it'll raise NotImplementedError.
     async def post_process(self, message, data, exception):
         pass 

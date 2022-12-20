@@ -6,19 +6,17 @@ from redis import Redis
 class AsyncDatabase:
     def __init__(self) -> None:
         self.redis = aioredis.from_url("redis://localhost", decode_responses=True)      
-    
+  
     async def add_user(self, chat_id: int) -> None:
-        await self.redis.set(f"{chat_id}.state", "active", nx=True)
-        await self.redis.sadd("active.users.id", chat_id)
-        if await self.redis.exists(f"{chat_id}.tags"):
-            await self.redis.persist(f"{chat_id}.tags")
+        await self.redis.sadd("active.chats.id", chat_id)
+        if await self.redis.exists(f"tags.{chat_id}"):
+            await self.redis.persist(f"tags.{chat_id}")
         
     async def remove_user(self, chat_id: int) -> None:
-        await self.redis.delete(f"{chat_id}.state")
-        await self.redis.srem("active.users.id", chat_id)
+        await self.redis.srem("active.chats.id", chat_id)
         await self.redis.delete(f"telebot_{chat_id}")
-        if await self.redis.exists(f"{chat_id}.tags"):
-            await self.redis.expire(f"{chat_id}.tags", 5184000)  # 2 months in seconds.      
+        if await self.redis.exists(f"tags.{chat_id}"):
+            await self.redis.expire(f"tags.{chat_id}", 5184000)  # 2 months in seconds.      
   
 class SyncDatabase:
     def __init__(self) -> None:
