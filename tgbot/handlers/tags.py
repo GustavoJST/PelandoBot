@@ -2,10 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 from tgbot.utils.database import async_db
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
-from telebot.asyncio_handler_backends import State, StatesGroup
-from telebot.asyncio_storage import StateMemoryStorage
 from tgbot.states.register_state import UserStates
-
 
 async def tags(message: Message, bot: AsyncTeleBot):
     if not await async_db.redis.sismember("active.chats.id", message.chat.id) and await async_db.redis.scard("active.chats.id") >= 1500:

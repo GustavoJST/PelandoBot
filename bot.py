@@ -18,8 +18,6 @@ from telebot.asyncio_filters import StateFilter
 from tgbot.states.register_state import UserStates
 
 # Handlers.
-from tgbot.handlers.admin import admin_user
-from tgbot.handlers.spam_command import anti_spam
 from tgbot.handlers.start import start
 from tgbot.handlers.tags import tags
 from tgbot.handlers.stop import stop
@@ -157,7 +155,7 @@ async def setup():
 
 if __name__ == '__main__':
     clean_db()
-    promotion_query_process = Process(target=promotion_query.prepare_query)
+    promotion_query_process = Process(target=promotion_query.get_promotions)
     promotion_query_process.start() 
     # Build ssl context.
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)

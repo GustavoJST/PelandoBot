@@ -4,7 +4,6 @@ from telebot.types import ForceReply, CallbackQuery, Message
 from tgbot.states.register_state import UserStates
 from tgbot.utils.database import async_db
 
-
 async def tag_option_handler(call: CallbackQuery, bot: AsyncTeleBot):
     if await async_db.redis.exists(f"state.{call.message.chat.id}"):
         user_id = (await async_db.redis.get(f"state.{call.message.chat.id}")).split("\"")[1]
@@ -31,7 +30,6 @@ async def tag_option_handler(call: CallbackQuery, bot: AsyncTeleBot):
                                     "Eu irei lhe entregar apenas promoções que tiverem em seu título uma das tags escolhidas.\n\n"
                                     "OBS²: Não seguir as regras acima fará com que você não receba promoções de forma correta "
                                     "ou não receba nenhuma promoção, até que se defina as tags de maneira correta.")
-            
             
             await bot.set_state(user_id, UserStates.tags_add, call.message.chat.id)
             await async_db.redis.expire(f"state.{call.message.chat.id}", 180)
@@ -82,7 +80,6 @@ async def handle_tags_input(message: Message, bot: AsyncTeleBot):
         await bot.send_message(message.chat.id, "Tempo limite para a configuração de tags atingido. "
                                "Digite /tags novamente para reiniciar o processo.")
         await async_db.redis.delete(f"state.{message.chat.id}")
-        #await bot.delete_state(message.from_user.id, message.chat.id)
         return
     
     # First regex checks if the tags follow the [tag, tag, tag] message pattern and 
