@@ -3,7 +3,7 @@ from telebot.types import Message
 from tgbot.utils.database import async_db
 
 async def promo(message: Message, bot: AsyncTeleBot):
-    if await async_db.redis.scard("active.chats.id") >= 1500 and not await async_db.redis.sismember("active.chats.id", message.chat.id):
+    if await async_db.redis.scard("active.chats.id") >= 1000 and not await async_db.redis.sismember("active.chats.id", message.chat.id):
         bot.send_message(message.chat.id, "Desculpe. Não posso te enviar promoções pois a lista de membros está cheia.")
         return
         

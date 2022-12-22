@@ -3,10 +3,10 @@ from telebot.types import Message
 from tgbot.utils.database import async_db
 
 async def start(message: Message, bot: AsyncTeleBot):
-    if await async_db.redis.scard("active.chats.id") >= 1500 and not await async_db.redis.sismember("active.chats.id", message.chat.id):
+    if await async_db.redis.scard("active.chats.id") >= 1000 and not await async_db.redis.sismember("active.chats.id", message.chat.id):
         bot.send_message(message.chat.id, "Olá. Eu sou o PelandoBot, um bot não oficial do Pelando.\n\n" 
                            "Desculpe, mas não podemos incluir você na lista de membros pois ela está atualmente cheia.\n\n "
-                           "Devido ao meu modo de operação, suporto apenas 1500 usuários simultâneos. "
+                           "Devido ao meu modo de operação, suporto apenas 1000 usuários simultâneos. "
                            "Tente novamente depois de algum tempo para checar se uma nova vaga foi liberada.")
         return
         

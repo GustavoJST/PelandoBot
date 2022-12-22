@@ -5,11 +5,11 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.states.register_state import UserStates
 
 async def tags(message: Message, bot: AsyncTeleBot):
-    if not await async_db.redis.sismember("active.chats.id", message.chat.id) and await async_db.redis.scard("active.chats.id") >= 1500:
+    if not await async_db.redis.sismember("active.chats.id", message.chat.id) and await async_db.redis.scard("active.chats.id") >= 1000:
         await bot.send_message(message.chat.id, "Você não pode configurar suas tags pois a lista de usuários ativos está cheia.")
         return
     
-    if not await async_db.redis.sismember("active.chats.id", message.chat.id) and await async_db.redis.scard("active.chats.id") < 1500:
+    if not await async_db.redis.sismember("active.chats.id", message.chat.id) and await async_db.redis.scard("active.chats.id") < 1000:
         await bot.send_message(message.chat.id, "Me ative com o comando /promo primeiro antes de configurar suas tags.")
         return
     

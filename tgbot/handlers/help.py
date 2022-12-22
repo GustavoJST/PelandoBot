@@ -27,7 +27,7 @@ async def help(message: Message, bot: AsyncTeleBot):
                            "Digite /tags novamente para analisar quais as suas tags atuais, e remova-as/adicione-as novamente se necessário.")
     
     await bot.send_message(message.chat.id, parse_mode="HTML",
-                           text="<b> Por que há um limite de apenas 1500 chats/usuários para o bot? </b>\n\n"
+                           text="<b> Por que há um limite de apenas 1000 chats/usuários para o bot? </b>\n\n"
                            "Infelizmente, o Telegram possui um limite na quantidade de requisições que podem ser feita aos seus "
                            "servidores em um determinado espaço de tempo. Atualmente, esse limite é de 30 requisições (envios de mensagem) "
                            "por segundo, o que torna a tarefa de mandar promoções atualizadas algo difícil, pois quanto mais usuários, "
