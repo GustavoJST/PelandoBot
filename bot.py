@@ -1,5 +1,5 @@
 import asyncio
-import promotion_query
+import promotion_scraper
 import logging
 import ssl
 from aiohttp import web
@@ -66,7 +66,7 @@ logger.setLevel(logging.DEBUG)
 # Cleans database on bot startup.
 def clean_db() -> None:
     # Cleans all promotions control related tables, as they will be
-    # populated later with updated data in promotion_query.py.
+    # populated later with updated data in promotion_scraper.py.
     if sync_db.redis.exists("unsent.promotions.id"):
         promotions_id = sync_db.redis.lrange("unsent.promotions.id", 0, -1)
         for id in promotions_id:
@@ -160,7 +160,7 @@ async def setup() -> web.Application:
 
 if __name__ == '__main__':
     clean_db()
-    promotion_query_process = Process(target=promotion_query.PromotionScraper().promotion_scraper_loop).start()
+    promotion_scraper_process = Process(target=promotion_scraper.PromotionScraper().promotion_scraper_loop).start()
     # Build ssl context.
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV)
