@@ -10,7 +10,7 @@ from multiprocessing import Process
 from telebot.types import BotCommand, BotCommandScopeAllPrivateChats, Update
 
 # Filters.
-from tgbot.filters.admin_filter import AdminFilter 
+from tgbot.filters.admin_filter import AdminFilter
 
 # States.
 from telebot.asyncio_storage import StateRedisStorage
@@ -64,15 +64,16 @@ logger.setLevel(logging.DEBUG)
 
 
 # Cleans database on bot startup.
-def clean_db():
+def clean_db() -> None:
     # Cleans all promotions control related tables, as they will be
     # populated later with updated data in promotion_query.py.
-    sync_db.redis.delete("unsent.promotions.id")
-    if sync_db.redis.exists("promotions.id"):
-        promotions_id = sync_db.redis.lrange("promotions.id", 0, -1)
+    if sync_db.redis.exists("unsent.promotions.id"):
+        promotions_id = sync_db.redis.lrange("unsent.promotions.id", 0, -1)
         for id in promotions_id:
             sync_db.redis.delete(f"promotion.{id}.info")
             sync_db.redis.delete(f"promotion.{id}.tags")
+    sync_db.redis.delete("promotions.id")
+    sync_db.redis.delete("unsent.promotions.id")
     
     # Reset /tags state for active users.
     users_id = sync_db.redis.smembers("active.chats.id")
@@ -81,7 +82,7 @@ def clean_db():
         
 
 # Process webhook calls.
-async def handle(request):
+async def handle(request) -> web.Response:
     if request.match_info.get('token') == bot.token:
         request_body_dict = await request.json()
         update = Update.de_json(request_body_dict)
@@ -92,14 +93,14 @@ async def handle(request):
 
 
 # Remove webhook and closing session before exiting.
-async def shutdown(app):
+async def shutdown(app) -> None:
     logger.info('Shutting down: removing webhook')
     await bot.remove_webhook()
     logger.info('Shutting down: closing session')
     await bot.close_session()
 
 
-async def setup():
+async def bot_setup() -> None:
     # Message handlers and callbacks.
     def register_handlers():
         bot.register_message_handler(start, commands=['start'], chat_types=CHAT_TYPES, admin=True, 
@@ -139,6 +140,10 @@ async def setup():
     bot.add_custom_filter(AdminFilter(bot))
     bot.add_custom_filter(StateFilter(bot))
     
+
+async def setup() -> web.Application:
+    # Setup bot.
+    await bot_setup()
     # Remove webhook, it fails sometimes the set if there is a previous webhook.
     logger.info('Starting up: removing old webhook')
     await bot.remove_webhook()
@@ -155,8 +160,7 @@ async def setup():
 
 if __name__ == '__main__':
     clean_db()
-    promotion_query_process = Process(target=promotion_query.get_promotions)
-    promotion_query_process.start() 
+    promotion_query_process = Process(target=promotion_query.PromotionScraper().promotion_scraper_loop).start()
     # Build ssl context.
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV)
@@ -167,3 +171,4 @@ if __name__ == '__main__':
         port=WEBHOOK_PORT,
         ssl_context=context,
     )
+    
