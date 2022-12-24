@@ -9,15 +9,22 @@ def prepare_process():
     asyncio.run(send_message())
 
 
+async def task_scheduler(tasks, chat_id, message, button, image=None, last_retry=False):
+    if image != None:
+        tasks[asyncio.create_task(bot.bot.send_photo(chat_id, image, message, reply_markup=button))] = chat_id, image, message, button, last_retry
+    else:
+        tasks[asyncio.create_task(bot.bot.send_message(chat_id, message, reply_markup=button))] = chat_id, image, message, button, last_retry
+
+
 async def send_message():
     start = timeit.default_timer()
     while sync_db.redis.exists("unsent.promotions.id"):
-        tasks = set()
+        tasks = dict()
         # TODO: Remove this later
         start = timeit.default_timer()
         active_chats_id = sync_db.redis.smembers("active.chats.id")
         unsent_promotions = sync_db.redis.lrange("unsent.promotions.id", 0, -1)
-       
+        
         for promotion_id in unsent_promotions:
             promotion_info = sync_db.redis.hgetall(f"promotion.{promotion_id}.info")
             try:
@@ -25,69 +32,65 @@ async def send_message():
                 message = (f"🚨  PROMOÇÃO  🚨\n\n"
                             f"🔥  {promotion_info['title']}  🔥\n\n"
                             f"💸  Preço: {promotion_info['price']}  💸")
+                url_button = InlineKeyboardButton("Link para promoção", promotion_info["url"])
+                inline_button = InlineKeyboardMarkup().add(url_button)
             except KeyError:
-                with open("./logfile.txt","a", encoding="utf-8") as logfile:
+                with open("./logfile.txt", "a", encoding="utf-8") as logfile:
                     logfile.write(traceback.format_exc())
                     logfile.write(f"\n Additional info: \n {promotion_info}")
                     logfile.write("\n\n\n\n")
                     print("\n\nException Logged Successfully!\n\n")
                     continue
 
-            url_button = InlineKeyboardButton("Link para promoção", promotion_info["url"])
-            inline_button = InlineKeyboardMarkup().add(url_button)
-    
-            active_chats_id_tmp = list(active_chats_id.copy())
+            active_chats_id_tmp = active_chats_id.copy()
+            chats_to_remove = set()
             while len(active_chats_id_tmp) != 0:
-                # TODO: Como iterar através dos usuários, sem repetir, 25 de cada vez?
                 for chat_id in active_chats_id_tmp:
                     if len(tasks) == 25:
                         break
                     
-                    active_chats_id_tmp.remove(chat_id)
-                    
+                    chats_to_remove.add(chat_id)
                     if sync_db.redis.exists(f"tags.{chat_id}"):
                         if not sync_db.redis.sinter(f"tags.{chat_id}", f"promotion.{promotion_id}.tags"):
                             continue
                         
-                    tasks.add(asyncio.create_task(bot.bot.send_photo(chat_id, image, message, reply_markup=inline_button)))
+                    await task_scheduler(tasks, chat_id, message, inline_button, image)           
                     
-                while tasks:
-                    # TODO :Se começar a surgir vários erros, o programa ira esperar 1 seg pra cada erro = demorado.
-                    # talvez mudar de FIRST_EXCEPTION para ALL_COMPLETED, assim aumentando a eficiência.
-                    start_asyncio = timeit.default_timer()
-                    done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
-                    print(f"asyncio.wait - elapsed time = {timeit.default_timer() - start_asyncio}")
-        
-                    for task in done:
-                        tasks.remove(task)
-                        if task.exception() is not None:
-                            if task._exception.error_code == 400:
-                                tasks.add(asyncio.create_task(bot.bot.send_message(chat_id, 
-                                                                                   message, 
-                                                                                   reply_markup=inline_button)))
-                                logfile.write(traceback.format_exc(task._exception))
-                                logfile.write(f"\n Additional info: \n {promotion_info}")
-                                logfile.write("\n\n\n\n")
-                                print("\n\nException Logged Successfully!\n\n")
+                [active_chats_id_tmp.discard(chat) for chat in chats_to_remove]   
+                 
+                start_asyncio = timeit.default_timer()
+                # TODO: Talvez seja mais eficiente usar ALL_COMPLETED ao invés de FIRST_EXCEPTION
+                done, pending = await asyncio.wait(tasks.keys(), return_when=asyncio.ALL_COMPLETED)
+                print(f"asyncio.wait - elapsed time = {timeit.default_timer() - start_asyncio}")
+    
+                for task in done: 
+                    if task.exception() is not None:
+                        logfile = open("./logfile.txt", "a", encoding="utf-8")
+                        # TODO: Colocar o primeiro if como erro 429 e o restante cair num else.
+                        if task._exception.error_code == 400:
+                            re_chat_id, re_image, re_message, re_button, last_retry = tasks.pop(task)
+                            if last_retry != True:
+                                await task_scheduler(tasks, re_chat_id, re_message, re_button, last_retry=True) 
+
+                                
+                        elif task._exception.error_code == 429:
+                            re_chat_id, re_image, re_message, re_button, last_retry = tasks.pop(task)
+                            await task_scheduler(tasks, re_chat_id, re_message, re_button, re_image)
+                            logfile.write(f"\n Status 429 error - Rescheduling task... \n {promotion_info}")
+                            
+                        else:
+                            logfile.write(traceback.format_exc(task._exception()))
+                            logfile.write(f"\n Unkown error - Additional info: \n {promotion_info}")
+                            logfile.write("\n\n\n\n")
+                            print("\n\nException logged successfully!\n\n")
+                        logfile.close()
                                     
-                            elif task._exception.error_code == 429:
-                                tasks.add(asyncio.create_task(bot.bot.send_photo(chat_id, 
-                                                                                 image, 
-                                                                                 message, 
-                                                                                 reply_markup=inline_button)))
-                            else:
-                                with open("./logfile.txt","a", encoding="utf-8") as logfile:
-                                    logfile.write(traceback.format_exc(task._exception))
-                                    logfile.write(f"\n Additional info: \n {promotion_info}")
-                                    logfile.write("\n\n\n\n")
-                                    print("\n\nException Logged Successfully!\n\n")
-                                    
-                    # Limits the message sent rate so it doesn't trigger 429 errors.               
-                    await asyncio.sleep(1.2)
+                # Limits the message sent rate so it doesn't trigger 429 errors.               
+                await asyncio.sleep(2)
                                          
             sync_db.redis.lrem("unsent.promotions.id", 1, promotion_id)
             sync_db.redis.delete(f"promotion.{promotion_id}.info")       
             sync_db.redis.delete(f"promotion.{promotion_id}.tags")
             
-    # TODO: remove this later        
+    # TODO: Remove this later        
     print(f"send_message - elapsed time = {timeit.default_timer() - start}")
