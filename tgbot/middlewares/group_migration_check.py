@@ -13,6 +13,10 @@ class GroupMigrationMiddleware(BaseMiddleware):
         if message.migrate_to_chat_id != None:
             old_id = message.chat.id
             new_id = message.migrate_to_chat_id
+            if await async_db.redis.sismember("active.chats.id", old_id):
+                await async_db.redis.srem("active.chats.id", old_id)
+                await async_db.redis.sadd("active.chats.id", new_id)
+                
             for state in ["tags.", "state."]:
                 if await async_db.redis.exists(f"{state}" + f"{old_id}"):
                     await async_db.redis.rename(f"{state}" + f"{old_id}" , f"{state}" + f"{new_id}")
