@@ -14,13 +14,24 @@ class AsyncDatabase:
         
     async def remove_user(self, chat_id: int) -> None:
         await self.redis.srem("active.chats.id", chat_id)
-        await self.redis.delete(f"telebot_{chat_id}")
+        await self.redis.delete(f"state.{chat_id}")
         if await self.redis.exists(f"tags.{chat_id}"):
             await self.redis.expire(f"tags.{chat_id}", 5184000)  # 2 months in seconds.      
   
 class SyncDatabase:
     def __init__(self) -> None:
-        self.redis = Redis.from_url("redis://localhost", decode_responses=True)      
+        self.redis = Redis.from_url("redis://localhost", decode_responses=True)    
+        
+    def add_user(self, chat_id: int) -> None:
+        self.redis.sadd("active.chats.id", chat_id)
+        if self.redis.exists(f"tags.{chat_id}"):
+            self.redis.persist(f"tags.{chat_id}")
+            
+    def remove_user(self, chat_id: int) -> None:
+        self.redis.srem("active.chats.id", chat_id)
+        self.redis.delete(f"state.{chat_id}")
+        if self.redis.exists(f"tags.{chat_id}"):
+            self.redis.expire(f"tags.{chat_id}", 5184000)
 
 
 # Instantiates a async database to be used across the project with import.

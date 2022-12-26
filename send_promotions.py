@@ -4,6 +4,7 @@ import asyncio
 import timeit
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.utils.database import sync_db
+from tgbot.config import DEV_CHAT_ID
 
 def prepare_process():
     asyncio.run(send_message())
@@ -34,10 +35,10 @@ async def send_message():
                             f"💸  Preço: {promotion_info['price']}  💸")
                 url_button = InlineKeyboardButton("Link para promoção", promotion_info["url"])
                 inline_button = InlineKeyboardMarkup().add(url_button)
-            except KeyError:
+            except KeyError as e:
                 with open("./logfile.txt", "a", encoding="utf-8") as logfile:
-                    logfile.write(traceback.format_exc())
-                    logfile.write(f"\n Additional info: \n {promotion_info}")
+                    logfile.write(f"\nKeyError:\n{str(e)}")
+                    logfile.write(f"\nAdditional info:\n {promotion_info}")
                     logfile.write("\n\n\n\n")
                     print("\n\nException Logged Successfully!\n\n")
                     continue
@@ -66,23 +67,37 @@ async def send_message():
                 for task in done: 
                     if task.exception() is not None:
                         logfile = open("./logfile.txt", "a", encoding="utf-8")
-                        # TODO: Colocar o primeiro if como erro 429 e o restante cair num else.
+                        # Bad request. Caused by image URL not being supported by Telegram. 
+                        # Only one attempt to resend the message is made when this error occurs.
                         if task._exception.error_code == 400:
                             re_chat_id, re_image, re_message, re_button, last_retry = tasks.pop(task)
                             if last_retry != True:
                                 await task_scheduler(tasks, re_chat_id, re_message, re_button, last_retry=True) 
 
-                                
+                        # Too many requests.
+                        # Keeps rescheduling the task until it successfully finishes.
                         elif task._exception.error_code == 429:
                             re_chat_id, re_image, re_message, re_button, last_retry = tasks.pop(task)
                             await task_scheduler(tasks, re_chat_id, re_message, re_button, re_image)
                             logfile.write(f"\n Status 429 error - Rescheduling task... \n {promotion_info}")
-                            
+                        
+                        # Forbidden. User either blocked the bot or kicked the bot from the group before
+                        # typing /stop to stop the bot. 
+                        # User is removed from the database.
+                        elif task._exception.error_code == 403:
+                            re_chat_id, re_image, re_message, re_button, last_retry = tasks.pop(task)
+                            sync_db.remove_user(re_chat_id)
+                        
+                        # Unknown error. Logs the error to a file for future debuging.
+                        # TODO: Remove this later.
                         else:
-                            logfile.write(traceback.format_exc(task._exception()))
-                            logfile.write(f"\n Unkown error - Additional info: \n {promotion_info}")
+                            traceback_string = ''.join(traceback.format_exception(task.exception()))
+                            logfile.write(f"\nERROR:\n{traceback_string}")   
+                            logfile.write(f"\nAdditional info:\n{promotion_info}")
                             logfile.write("\n\n\n\n")
                             print("\n\nException logged successfully!\n\n")
+                            bot.bot.send_message(DEV_CHAT_ID, "Unknown exception detected. Check logs!")
+                            tasks.pop(task)
                         logfile.close()
                                     
                 # Limits the message sent rate so it doesn't trigger 429 errors.               
