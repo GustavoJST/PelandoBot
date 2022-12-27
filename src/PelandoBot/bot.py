@@ -51,8 +51,8 @@ WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addres
 #
 # When asked for "Common Name (e.g. server FQDN or YOUR name)" you should reply
 # with the same value in you put in WEBHOOK_HOST.
-WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Path to the ssl certificate.
-WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Path to the ssl private key.
+WEBHOOK_SSL_CERT = './webhook_cert_dev.pem'  # Path to the ssl certificate.
+WEBHOOK_SSL_PRIV = './webhook_pkey_dev.pem'  # Path to the ssl private key.
 WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
 
@@ -159,7 +159,7 @@ async def setup() -> web.Application:
 
 
 if __name__ == '__main__':
-    clean_db()
+    #clean_db()
     promotion_scraper_process = Process(target=promotion_scraper.PromotionScraper().promotion_scraper_loop).start()
     # Build ssl context.
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
