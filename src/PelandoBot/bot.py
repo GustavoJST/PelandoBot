@@ -42,7 +42,7 @@ from pelandobot.tgbot.config import TOKEN, HOST
 
 WEBHOOK_HOST = HOST
 WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open').
-WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP address.
+WEBHOOK_LISTEN = "0.0.0.0"  # In some VPS you may need to put here the IP address.
 
 # Quick'n'dirty SSL certificate generation:
 #
@@ -51,8 +51,8 @@ WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addres
 #
 # When asked for "Common Name (e.g. server FQDN or YOUR name)" you should reply
 # with the same value in you put in WEBHOOK_HOST.
-WEBHOOK_SSL_CERT = './webhook_cert_dev.pem'  # Path to the ssl certificate.
-WEBHOOK_SSL_PRIV = './webhook_pkey_dev.pem'  # Path to the ssl private key.
+WEBHOOK_SSL_CERT = "./webhook_cert_dev.pem"  # Path to the ssl certificate.
+WEBHOOK_SSL_PRIV = "./webhook_pkey_dev.pem"  # Path to the ssl private key.
 WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
 
@@ -83,7 +83,7 @@ def clean_db() -> None:
 
 # Process webhook calls.
 async def handle(request) -> web.Response:
-    if request.match_info.get('token') == bot.token:
+    if request.match_info.get("token") == bot.token:
         request_body_dict = await request.json()
         update = Update.de_json(request_body_dict)
         asyncio.ensure_future(bot.process_new_updates([update]))
@@ -94,44 +94,88 @@ async def handle(request) -> web.Response:
 
 # Remove webhook and closing session before exiting.
 async def shutdown(app) -> None:
-    logger.info('Shutting down: removing webhook')
+    logger.info("Shutting down: removing webhook")
     await bot.remove_webhook()
-    logger.info('Shutting down: closing session')
+    logger.info("Shutting down: closing session")
     await bot.close_session()
 
 
 async def bot_setup() -> None:
     # Message handlers and callbacks.
     def register_handlers():
-        bot.register_message_handler(start, commands=['start'], chat_types=CHAT_TYPES, admin=True,
-                                     pass_bot=True, content_types=["text"])
+        bot.register_message_handler(
+            start,
+            commands=["start"],
+            chat_types=CHAT_TYPES,
+            admin=True,
+            pass_bot=True,
+            content_types=["text"],
+        )
 
-        bot.register_message_handler(promo, commands=['promo'], chat_types=CHAT_TYPES, admin=True,
-                                     pass_bot=True, content_types=["text"])
+        bot.register_message_handler(
+            promo,
+            commands=["promo"],
+            chat_types=CHAT_TYPES,
+            admin=True,
+            pass_bot=True,
+            content_types=["text"],
+        )
 
-        bot.register_message_handler(stop, commands=['stop'], chat_types=CHAT_TYPES,
-                                     admin=True, pass_bot=True, content_types=["text"])
+        bot.register_message_handler(
+            stop,
+            commands=["stop"],
+            chat_types=CHAT_TYPES,
+            admin=True,
+            pass_bot=True,
+            content_types=["text"],
+        )
 
-        bot.register_message_handler(help, commands=['help'], chat_types=CHAT_TYPES,
-                                     admin=True, pass_bot=True, content_types=["text"])
+        bot.register_message_handler(
+            help,
+            commands=["help"],
+            chat_types=CHAT_TYPES,
+            admin=True,
+            pass_bot=True,
+            content_types=["text"],
+        )
 
-        bot.register_message_handler(tags, commands=['tags'], chat_types=CHAT_TYPES,
-                                     admin=True, pass_bot=True, content_types=["text"])
+        bot.register_message_handler(
+            tags,
+            commands=["tags"],
+            chat_types=CHAT_TYPES,
+            admin=True,
+            pass_bot=True,
+            content_types=["text"],
+        )
 
-        bot.register_callback_query_handler(callback=tag_option_handler, pass_bot=True,
-                                            func=lambda call: True, state=UserStates.tags_button)
+        bot.register_callback_query_handler(
+            callback=tag_option_handler,
+            pass_bot=True,
+            func=lambda call: True,
+            state=UserStates.tags_button,
+        )
 
-        bot.register_message_handler(handle_tags_input, chat_types=CHAT_TYPES, admin=True, pass_bot=True,
-                                     content_types=["text"], state=[UserStates.tags_remove, UserStates.tags_add])
+        bot.register_message_handler(
+            handle_tags_input,
+            chat_types=CHAT_TYPES,
+            admin=True,
+            pass_bot=True,
+            content_types=["text"],
+            state=[UserStates.tags_remove, UserStates.tags_add],
+        )
+
     register_handlers()
 
     # Bot commands menu for private chats only.
-    await bot.set_my_commands(commands=[
-                              BotCommand("promo", "Inicia o bot"),
-                              BotCommand("stop", "Para o bot"),
-                              BotCommand("help", "Informações sobre os comandos e o bot"),
-                              BotCommand("tags", "Adicionar/remover tags")],
-                              scope=BotCommandScopeAllPrivateChats())
+    await bot.set_my_commands(
+        commands=[
+            BotCommand("promo", "Inicia o bot"),
+            BotCommand("stop", "Para o bot"),
+            BotCommand("help", "Informações sobre os comandos e o bot"),
+            BotCommand("tags", "Adicionar/remover tags"),
+        ],
+        scope=BotCommandScopeAllPrivateChats(),
+    )
 
     # Middlewares.
     bot.setup_middleware(AntiFloodMiddleware(limit=2, bot=bot))
@@ -146,22 +190,25 @@ async def setup() -> web.Application:
     # Setup bot.
     await bot_setup()
     # Remove webhook, it fails sometimes the set if there is a previous webhook.
-    logger.info('Starting up: removing old webhook')
+    logger.info("Starting up: removing old webhook")
     await bot.remove_webhook()
 
     # Set webhook.
-    logger.info('Starting up: setting webhook')
-    await bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
-                          certificate=open(WEBHOOK_SSL_CERT, 'r'))
+    logger.info("Starting up: setting webhook")
+    await bot.set_webhook(
+        url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH, certificate=open(WEBHOOK_SSL_CERT, "r")
+    )
     app = web.Application()
-    app.router.add_post('/{token}/', handle)
+    app.router.add_post("/{token}/", handle)
     app.on_cleanup.append(shutdown)
     return app
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     clean_db()
-    promotion_scraper_process = Process(target=promotion_scraper.PromotionScraper().promotion_scraper_loop).start()
+    promotion_scraper_process = Process(
+        target=promotion_scraper.PromotionScraper().promotion_scraper_loop
+    ).start()
     # Build ssl context.
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV)

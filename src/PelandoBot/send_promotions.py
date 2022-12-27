@@ -13,9 +13,21 @@ def prepare_process():
 
 async def task_scheduler(tasks, chat_id, message, button, image=None, last_retry=False):
     if image is not None:
-        tasks[asyncio.create_task(bot.bot.send_photo(chat_id, image, message, reply_markup=button))] = chat_id, image, message, button, last_retry
+        tasks[asyncio.create_task(bot.bot.send_photo(chat_id, image, message, reply_markup=button))] = (
+            chat_id,
+            image,
+            message,
+            button,
+            last_retry,
+        )
     else:
-        tasks[asyncio.create_task(bot.bot.send_message(chat_id, message, reply_markup=button))] = chat_id, image, message, button, last_retry
+        tasks[asyncio.create_task(bot.bot.send_message(chat_id, message, reply_markup=button))] = (
+            chat_id,
+            image,
+            message,
+            button,
+            last_retry,
+        )
 
 
 async def send_message():
@@ -31,9 +43,11 @@ async def send_message():
             promotion_info = sync_db.redis.hgetall(f"promotion.{promotion_id}.info")
             try:
                 image = promotion_info["image"]
-                message = (f"🚨  PROMOÇÃO  🚨\n\n"
-                           f"🔥  {promotion_info['title']}  🔥\n\n"
-                           f"💸  Preço: {promotion_info['price']}  💸")
+                message = (
+                    f"🚨  PROMOÇÃO  🚨\n\n"
+                    f"🔥  {promotion_info['title']}  🔥\n\n"
+                    f"💸  Preço: {promotion_info['price']}  💸"
+                )
                 url_button = InlineKeyboardButton("Link para promoção", promotion_info["url"])
                 inline_button = InlineKeyboardMarkup().add(url_button)
             except KeyError as e:
@@ -55,7 +69,6 @@ async def send_message():
                     if sync_db.redis.exists(f"tags.{chat_id}"):
                         if not sync_db.redis.sinter(f"tags.{chat_id}", f"promotion.{promotion_id}.tags"):
                             continue
-
                     await task_scheduler(tasks, chat_id, message, inline_button, image)
 
                 [active_chats_id_tmp.discard(chat) for chat in chats_to_remove]
@@ -73,14 +86,18 @@ async def send_message():
                         if task._exception.error_code == 400:
                             re_chat_id, re_image, re_message, re_button, last_retry = tasks.pop(task)
                             if not last_retry:
-                                await task_scheduler(tasks, re_chat_id, re_message, re_button, last_retry=True)
+                                await task_scheduler(
+                                    tasks, re_chat_id, re_message, re_button, last_retry=True
+                                )
 
                         # Too many requests.
                         # Keeps rescheduling the task until it successfully finishes.
                         elif task._exception.error_code == 429:
                             re_chat_id, re_image, re_message, re_button, last_retry = tasks.pop(task)
                             await task_scheduler(tasks, re_chat_id, re_message, re_button, re_image)
-                            logfile.write(f"\n Status 429 error - Rescheduling task... \n {promotion_info}")
+                            logfile.write(
+                                f"\n Status 429 error - Rescheduling task... \n {promotion_info}"
+                            )
 
                         # Forbidden. User either blocked the bot or kicked the bot from the group before
                         # typing /stop to stop the bot.
@@ -92,7 +109,7 @@ async def send_message():
                         # Unknown error. Logs the error to a file for future debuging.
                         # TODO: Remove this later.
                         else:
-                            traceback_string = ''.join(traceback.format_exception(task.exception()))
+                            traceback_string = "".join(traceback.format_exception(task.exception()))
                             logfile.write(f"\nERROR:\n{traceback_string}")
                             logfile.write(f"\nAdditional info:\n{promotion_info}")
                             logfile.write("\n\n\n\n")

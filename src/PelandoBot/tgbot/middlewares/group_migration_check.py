@@ -7,7 +7,7 @@ from pelandobot.tgbot.utils.database import async_db
 class GroupMigrationMiddleware(BaseMiddleware):
     def __init__(self, bot: AsyncTeleBot) -> None:
         # Always specify update types, otherwise middlewares won't work.
-        self.update_types = ['message']
+        self.update_types = ["message"]
         self.bot = bot
 
     async def pre_process(self, message: Message, data):

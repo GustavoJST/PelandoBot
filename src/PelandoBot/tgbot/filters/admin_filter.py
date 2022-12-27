@@ -10,7 +10,7 @@ class AdminFilter(SimpleCustomFilter):
     the user has the 'member' attribute instead of 'administrator'.
     """
 
-    key = 'admin'
+    key = "admin"
 
     def __init__(self, bot: AsyncTeleBot):
         self._bot = bot
@@ -20,8 +20,14 @@ class AdminFilter(SimpleCustomFilter):
             return True
         # Cache all chat admin IDs in the database for 1 hour.
         if not await async_db.redis.exists(f"{message.chat.id}.admins"):
-            admin_ids = [admin.user.id for admin in await self._bot.get_chat_administrators(message.chat.id)]
+            admin_ids = [
+                admin.user.id for admin in await self._bot.get_chat_administrators(message.chat.id)
+            ]
             await async_db.redis.sadd(f"{message.chat.id}.admins", *admin_ids)
             await async_db.redis.expire(f"{message.chat.id}.admins", 3600)
 
-        return True if await async_db.redis.sismember(f"{message.chat.id}.admins", message.from_user.id) else False
+        return (
+            True
+            if await async_db.redis.sismember(f"{message.chat.id}.admins", message.from_user.id)
+            else False
+        )

@@ -7,3 +7,7 @@ addopts = "--cov=pelandobot"
 testpaths = [
     "tests",
 ]
+
+[tool.black]
+line-length = 105
+--extend-exclude = "variables_and_parameters.py"

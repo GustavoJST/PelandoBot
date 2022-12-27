@@ -7,7 +7,7 @@ class AntiFloodMiddleware(BaseMiddleware):
         self.last_time: dict[int, int] = {}
         self.limit = limit
         # Always specify update types, otherwise middlewares won't work
-        self.update_types = ['message']
+        self.update_types = ["message"]
         self.bot = bot
 
     async def pre_process(self, message, data):
@@ -19,7 +19,10 @@ class AntiFloodMiddleware(BaseMiddleware):
             return
         if message.date - self.last_time[message.from_user.id] < self.limit:
             # User is flooding
-            await self.bot.send_message(message.chat.id, 'Beep boop. Você está mandando mensagens com muita frequência. Diminua o ritmo.')
+            await self.bot.send_message(
+                message.chat.id,
+                "Beep boop. Você está mandando mensagens com muita frequência. Diminua o ritmo.",
+            )
             return CancelUpdate()
         # Write the time of the last request
         self.last_time[message.from_user.id] = message.date
