@@ -74,12 +74,12 @@ def clean_db() -> None:
             sync_db.redis.delete(f"promotion.{id}.tags")
     sync_db.redis.delete("promotions.id")
     sync_db.redis.delete("unsent.promotions.id")
-    
+
     # Reset /tags state for active users.
     users_id = sync_db.redis.smembers("active.chats.id")
     for user_id in users_id:
         sync_db.redis.delete(f"state.{user_id}")
-        
+
 
 # Process webhook calls.
 async def handle(request) -> web.Response:
@@ -103,34 +103,35 @@ async def shutdown(app) -> None:
 async def bot_setup() -> None:
     # Message handlers and callbacks.
     def register_handlers():
-        bot.register_message_handler(start, commands=['start'], chat_types=CHAT_TYPES, admin=True, 
+        bot.register_message_handler(start, commands=['start'], chat_types=CHAT_TYPES, admin=True,
                                      pass_bot=True, content_types=["text"])
-        
-        bot.register_message_handler(promo, commands=['promo'], chat_types=CHAT_TYPES, admin=True, 
+
+        bot.register_message_handler(promo, commands=['promo'], chat_types=CHAT_TYPES, admin=True,
                                      pass_bot=True, content_types=["text"])
-        
-        bot.register_message_handler(stop, commands=['stop'], chat_types=CHAT_TYPES, 
+
+        bot.register_message_handler(stop, commands=['stop'], chat_types=CHAT_TYPES,
                                      admin=True, pass_bot=True, content_types=["text"])
-        
-        bot.register_message_handler(help, commands=['help'], chat_types=CHAT_TYPES, 
+
+        bot.register_message_handler(help, commands=['help'], chat_types=CHAT_TYPES,
                                      admin=True, pass_bot=True, content_types=["text"])
-        
-        bot.register_message_handler(tags, commands=['tags'], chat_types=CHAT_TYPES, 
+
+        bot.register_message_handler(tags, commands=['tags'], chat_types=CHAT_TYPES,
                                      admin=True, pass_bot=True, content_types=["text"])
-        
+
         bot.register_callback_query_handler(callback=tag_option_handler, pass_bot=True,
                                             func=lambda call: True, state=UserStates.tags_button)
-        
+
         bot.register_message_handler(handle_tags_input, chat_types=CHAT_TYPES, admin=True, pass_bot=True,
-                                    content_types=["text"], state=[UserStates.tags_remove, UserStates.tags_add])
+                                     content_types=["text"], state=[UserStates.tags_remove, UserStates.tags_add])
     register_handlers()
-    
+
     # Bot commands menu for private chats only.
-    await bot.set_my_commands(commands=[BotCommand("promo", "Inicia o bot"),
-                                        BotCommand("stop", "Para o bot"),
-                                        BotCommand("help", "Informações sobre os comandos e o bot"),
-                                        BotCommand("tags", "Adicionar/remover tags")],
-                                        scope=BotCommandScopeAllPrivateChats())
+    await bot.set_my_commands(commands=[
+                              BotCommand("promo", "Inicia o bot"),
+                              BotCommand("stop", "Para o bot"),
+                              BotCommand("help", "Informações sobre os comandos e o bot"),
+                              BotCommand("tags", "Adicionar/remover tags")],
+                              scope=BotCommandScopeAllPrivateChats())
 
     # Middlewares.
     bot.setup_middleware(AntiFloodMiddleware(limit=2, bot=bot))
@@ -139,7 +140,7 @@ async def bot_setup() -> None:
     # Custom filters.
     bot.add_custom_filter(AdminFilter(bot))
     bot.add_custom_filter(StateFilter(bot))
-    
+
 
 async def setup() -> web.Application:
     # Setup bot.
@@ -147,11 +148,11 @@ async def setup() -> web.Application:
     # Remove webhook, it fails sometimes the set if there is a previous webhook.
     logger.info('Starting up: removing old webhook')
     await bot.remove_webhook()
-    
+
     # Set webhook.
     logger.info('Starting up: setting webhook')
     await bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
-                certificate=open(WEBHOOK_SSL_CERT, 'r'))
+                          certificate=open(WEBHOOK_SSL_CERT, 'r'))
     app = web.Application()
     app.router.add_post('/{token}/', handle)
     app.on_cleanup.append(shutdown)
@@ -159,7 +160,7 @@ async def setup() -> web.Application:
 
 
 if __name__ == '__main__':
-    #clean_db()
+    clean_db()
     promotion_scraper_process = Process(target=promotion_scraper.PromotionScraper().promotion_scraper_loop).start()
     # Build ssl context.
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -171,4 +172,3 @@ if __name__ == '__main__':
         port=WEBHOOK_PORT,
         ssl_context=context,
     )
-    

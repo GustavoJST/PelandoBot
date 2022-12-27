@@ -1,5 +1,6 @@
 from telebot.asyncio_handler_backends import State, StatesGroup
 
+
 class UserStates(StatesGroup):
     """
     Group of states for registering

@@ -2,6 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 from pelandobot.tgbot.utils.database import async_db
 
+
 async def stop(message: Message, bot: AsyncTeleBot):
     if await async_db.redis.sismember("active.chats.id", message.chat.id):
         await bot.send_message(message.chat.id, "Não irei entregar novas promoções de agora em diante. Volte sempre!")

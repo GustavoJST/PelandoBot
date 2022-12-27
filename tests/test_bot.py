@@ -1,7 +1,8 @@
+# flake8: noqa
 import requests
 import pytest
-from tgbot.config import TOKEN, HOST
-from bot import setup, handle
+from pelandobot.tgbot.config import TOKEN, HOST
+from pelandobot.bot import setup, handle
 from aiohttp import web
 from multiprocessing import Process
 import ssl

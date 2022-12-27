@@ -1,8 +1,9 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
 
+
 async def help(message: Message, bot: AsyncTeleBot):
-    await bot.send_message(message.chat.id, parse_mode="HTML", 
+    await bot.send_message(message.chat.id, parse_mode="HTML",
                            text="<b>O que eu posso fazer por você:</b>\n\n"
                            "* Entregar novas promoções assim que elas aparecerem no site do Pelando.\n\n"
                            "* Filtrar as novas promoções, entregando apenas as relevantes para você através do sistema de Tags.\n\n"
@@ -25,7 +26,7 @@ async def help(message: Message, bot: AsyncTeleBot):
                            "2 - Você configurou as tags de forma errada, sendo provavelmente algum erro ortográfico "
                            "ou sua tag é uma palavra que não existe.\n\n"
                            "Digite /tags novamente para analisar quais as suas tags atuais, e remova-as/adicione-as novamente se necessário.")
-    
+
     await bot.send_message(message.chat.id, parse_mode="HTML",
                            text="<b> Por que há um limite de apenas 1000 chats/usuários para o bot? </b>\n\n"
                            "Infelizmente, o Telegram possui um limite na quantidade de requisições que podem ser feita aos seus "
@@ -40,4 +41,3 @@ async def help(message: Message, bot: AsyncTeleBot):
                            "<b>Sou administrador/dono de um grupo mas o bot não responde aos comandos.</b>\n\n"
                            "Infelizmente, não consigo responder a comandos de administradores/donos anônimos. "
                            "Desative a opção 'Permanecer anônimo' nas configurações dos administradores do grupo.")
-    

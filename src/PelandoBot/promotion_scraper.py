@@ -27,59 +27,55 @@ class PromotionScraper():
 
     url = "https://www.pelando.com.br/api/graphql"
 
-
-    def get_params(self) -> dict:
-        if self.first_query == True:
-            params = {"operationName":"RecentOffersQuery",
-                        f"variables":"{\"limit\":50}",
-                        "extensions":"{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"38c288ba7f66706afcb33f3206b00229c0a86fb140bad72a262603e12b422802\"}}"}
+    def get_params(self) -> dict[str, str]:
+        if self.first_query:
+            params = {"operationName": "RecentOffersQuery",
+                      "variables": "{\"limit\":50}",
+                      "extensions": "{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"38c288ba7f66706afcb33f3206b00229c0a86fb140bad72a262603e12b422802\"}}"}
         else:
-            params = {"operationName":"RecentOffersQuery",
-                        "variables":"{\"limit\":25}",
-                        "extensions":"{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"38c288ba7f66706afcb33f3206b00229c0a86fb140bad72a262603e12b422802\"}}"}
+            params = {"operationName": "RecentOffersQuery",
+                      "variables": "{\"limit\":25}",
+                      "extensions": "{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"38c288ba7f66706afcb33f3206b00229c0a86fb140bad72a262603e12b422802\"}}"}
         return params
 
-
-    def populate_db_with_promotions(self, data: dict) -> None:
+    def populate_db_with_promotions(self, data) -> None:
         # Populate the promotions_ids list with the latest promotions, as we only want new promotions from now on.
         for promotion in data["data"]["public"]["recentOffers"]["edges"]:
             sync_db.redis.rpush("promotions.id", promotion["id"])
         self.first_query = False
-       
-        
-    def get_promotion_tags(self, promotion_title: str) -> set:
+
+    def get_promotion_tags(self, promotion_title: str) -> set[str]:
         promotion_title = promotion_title.lower()
-        # First filter fixes cases like [text]128gb from becoming 'text128gb', 
+        # First filter fixes cases like [text]128gb from becoming 'text128gb',
         # as that would fuse two tags in one.
         # Instead, it becomes 'text 128gb'.
         # OBS: Both filter_1 and filter_2 could've been implemented using \W to match
         # all non-word characters, but the problem is that this filter it's too broad.
         # This implementation, albeit more dumber, allows for a more fine control.
         filter_1 = re.sub(r"[\[\]$%+*\(\):;?!°{}®™=&\-|]", " ", promotion_title)
-                    
+
         # filter_2 is for symbols that appear frequently in promotion titles.
         filter_2 = re.sub(r"[,\/\\.\'\"]", "", filter_1)
-        
+
         # Last filter deletes single character words/digits like "a","e","o", "1".
         promotion_tags = set(re.sub(r"(?i)(?<=\s|\,)\w(?=\s|\,)", "", filter_2).split(" "))
         promotion_tags.discard("")
         return promotion_tags
-    
-    
-    def get_promotion_info(self, promotion: dict) -> dict:
+
+    def get_promotion_info(self, promotion):
         title = promotion["title"]
         promotion_price = "Grátis" if promotion["price"] in [0, None] else f"R$ {float(promotion['price']):.2f}".replace('.', ',')
         promotion_url = f"https://www.pelando.com.br/d/{promotion['id']}"
         promotion_image = promotion["image"]["original"]
-        
+
         # TODO: Remove this in cleanup if no necessary.
         # Very rarely, no URL will be passed to the variable promotion_image
         # using the "original" keyword.
         """ if promotion_image is None:
             promotion_image = promotion["image"]["large"] """
-        
+
         promotion_tags = self.get_promotion_tags(title)
-        
+
         return {"id": promotion["id"],
                 "title": title,
                 "price": promotion_price,
@@ -87,19 +83,17 @@ class PromotionScraper():
                 "image": promotion_image,
                 "tags": promotion_tags}
 
-
-    def push_promotion_to_db(self, promotion_info: dict) -> None: 
+    def push_promotion_to_db(self, promotion_info) -> None:
         sync_db.redis.lpush("promotions.id", promotion_info["id"])
         sync_db.redis.rpop("promotions.id")
         sync_db.redis.lpush("unsent.promotions.id", promotion_info["id"])
-        
+
         sync_db.redis.sadd(f"promotion.{promotion_info['id']}.tags", *promotion_info["tags"])
-        sync_db.redis.hset(f"promotion.{promotion_info['id']}.info", mapping={"title": promotion_info["title"], 
-                                                                              "price": promotion_info["price"], 
+        sync_db.redis.hset(f"promotion.{promotion_info['id']}.info", mapping={"title": promotion_info["title"],
+                                                                              "price": promotion_info["price"],
                                                                               "url": promotion_info["url"],
                                                                               "image": promotion_info["image"]})
-        
-        
+
     def spawn_msender_process(self):
         m_sender = Process(target=send_promotions.prepare_process)
         m_sender.start()
@@ -107,39 +101,38 @@ class PromotionScraper():
         self.active_process = True
         return m_sender
 
-
     def promotion_scraper_loop(self):
         with requests.Session() as session:
             while True:
                 time.sleep(8)
                 params = self.get_params()
                 data = session.get(self.url, params=params, headers=self.headers).json()
-                
+
                 # Making GET requests to the URL rarely returns a persistedQuery error.
-                # The code below adds content check and restarts the loop if the content 
+                # The code below adds content check and restarts the loop if the content
                 # contains an error, trying a new request in the next iteration of the loop.
                 try:
-                    test_response = data["data"]["public"]["recentOffers"]["edges"]
+                    data["data"]["public"]["recentOffers"]["edges"]
                 except KeyError:
                     time.sleep(2)
                     continue
 
-                if self.first_query == True:
+                if self.first_query:
                     self.populate_db_with_promotions(data)
-                
+
                 promotions_id = sync_db.redis.lrange("promotions.id", 0, -1)
-                
+
                 for promotion in data["data"]["public"]["recentOffers"]["edges"]:
                     # Filters promotions that were already delivered or not approved by the website.
-                    if promotion["id"] in promotions_id or not promotion["timestamps"]["approvedAt"]:    
+                    if promotion["id"] in promotions_id or not promotion["timestamps"]["approvedAt"]:
                         continue
-                       
-                    promotion_info = self.get_promotion_info(promotion)      
+
+                    promotion_info = self.get_promotion_info(promotion)
                     self.push_promotion_to_db(promotion_info)
-                    
-                if sync_db.redis.exists("unsent.promotions.id"):      
-                    if self.active_process == False:
+
+                if sync_db.redis.exists("unsent.promotions.id"):
+                    if not self.active_process:
                         m_sender = self.spawn_msender_process()
-                        
+
                     if not m_sender.is_alive() and sync_db.redis.exists("unsent.promotions.id"):
                         self.active_process = False
