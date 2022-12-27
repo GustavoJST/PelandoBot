@@ -4,6 +4,7 @@ import time
 import pelandobot.send_promotions as send_promotions
 from pelandobot.tgbot.utils.database import sync_db
 from multiprocessing import Process
+from typing import Dict, Set
 
 
 class PromotionScraper():
@@ -27,15 +28,21 @@ class PromotionScraper():
 
     url = "https://www.pelando.com.br/api/graphql"
 
-    def get_params(self) -> dict[str, str]:
+    def get_params(self) -> Dict[str, str]:
         if self.first_query:
             params = {"operationName": "RecentOffersQuery",
                       "variables": "{\"limit\":50}",
-                      "extensions": "{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"38c288ba7f66706afcb33f3206b00229c0a86fb140bad72a262603e12b422802\"}}"}
+                      "extensions":
+                          "{\"persistedQuery\":"
+                          "{\"version\":1,"
+                          "\"sha256Hash\":\"38c288ba7f66706afcb33f3206b00229c0a86fb140bad72a262603e12b422802\"}}"}
         else:
             params = {"operationName": "RecentOffersQuery",
                       "variables": "{\"limit\":25}",
-                      "extensions": "{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"38c288ba7f66706afcb33f3206b00229c0a86fb140bad72a262603e12b422802\"}}"}
+                      "extensions":
+                          "{\"persistedQuery\":"
+                          "{\"version\":1,"
+                          "\"sha256Hash\":\"38c288ba7f66706afcb33f3206b00229c0a86fb140bad72a262603e12b422802\"}}"}
         return params
 
     def populate_db_with_promotions(self, data) -> None:
@@ -44,7 +51,7 @@ class PromotionScraper():
             sync_db.redis.rpush("promotions.id", promotion["id"])
         self.first_query = False
 
-    def get_promotion_tags(self, promotion_title: str) -> set[str]:
+    def get_promotion_tags(self, promotion_title: str) -> Set[str]:
         promotion_title = promotion_title.lower()
         # First filter fixes cases like [text]128gb from becoming 'text128gb',
         # as that would fuse two tags in one.
