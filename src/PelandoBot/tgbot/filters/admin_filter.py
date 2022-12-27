@@ -1,7 +1,7 @@
 from telebot.asyncio_filters import SimpleCustomFilter
 from telebot.types import Message
 from telebot.async_telebot import AsyncTeleBot
-from tgbot.utils.database import async_db
+from pelandobot.tgbot.utils.database import async_db
 
 class AdminFilter(SimpleCustomFilter):
     """

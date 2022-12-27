@@ -1,8 +1,8 @@
 import re
 import requests
 import time
-import send_promotions
-from tgbot.utils.database import sync_db
+import pelandobot.send_promotions as send_promotions
+from pelandobot.tgbot.utils.database import sync_db
 from multiprocessing import Process
 
 

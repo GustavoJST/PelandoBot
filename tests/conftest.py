@@ -1,6 +1,6 @@
 import pytest
-from promotion_scraper import PromotionScraper
-from tgbot.utils.database import sync_db
+from pelandobot.promotion_scraper import PromotionScraper
+from pelandobot.tgbot.utils.database import sync_db
 
 
 @pytest.fixture(scope="function")

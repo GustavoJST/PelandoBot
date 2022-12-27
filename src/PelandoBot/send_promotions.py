@@ -1,10 +1,10 @@
-import bot
+import pelandobot.bot as bot
 import traceback
 import asyncio
 import timeit
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
-from tgbot.utils.database import sync_db
-from tgbot.config import DEV_CHAT_ID
+from pelandobot.tgbot.utils.database import sync_db
+from pelandobot.tgbot.config import DEV_CHAT_ID
 
 def prepare_process():
     asyncio.run(send_message())

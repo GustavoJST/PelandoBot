@@ -1,8 +1,8 @@
 import re
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import ForceReply, CallbackQuery, Message
-from tgbot.states.register_state import UserStates
-from tgbot.utils.database import async_db
+from pelandobot.tgbot.states.register_state import UserStates
+from pelandobot.tgbot.utils.database import async_db
 
 async def tag_option_handler(call: CallbackQuery, bot: AsyncTeleBot):
     if await async_db.redis.exists(f"state.{call.message.chat.id}"):
@@ -85,7 +85,7 @@ async def handle_tags_input(message: Message, bot: AsyncTeleBot):
     # First regex checks if the tags follow the [tag, tag, tag] message pattern and 
     # the second regex checks for single character words/digits, to exclude things like [tag, a, b, tag].
     # Because of that, it enforces a 2 character minimum limit for user tags.
-    if not re.search("(?i)^[a-zà-ãç-íò-õù-ú0-9\ ,]+$", message.text) or re.search("(^|\s|\,)\w(\s|\,|$)", message.text):
+    if not re.search(r"(?i)^[a-zà-ãç-íò-õù-ú0-9\ ,]+$", message.text) or re.search(r"(^|\s|\,)\w(\s|\,|$)", message.text):
         await bot.reply_to(message, "Suas tags não seguem o padrão necessário. "
                            "Lembre-se, você não pode usar caracteres especiais além dos acentos/vírgulas e "
                            "o limite mínimo de caracteres para uma tag é de 2 caracteres. "

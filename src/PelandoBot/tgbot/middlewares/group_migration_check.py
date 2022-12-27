@@ -1,7 +1,7 @@
 from telebot.asyncio_handler_backends import BaseMiddleware
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
-from tgbot.utils.database import async_db
+from pelandobot.tgbot.utils.database import async_db
 
 class GroupMigrationMiddleware(BaseMiddleware):
     def __init__(self, bot: AsyncTeleBot) -> None:

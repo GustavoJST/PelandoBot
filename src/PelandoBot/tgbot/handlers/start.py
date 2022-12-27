@@ -1,6 +1,6 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import Message
-from tgbot.utils.database import async_db
+from pelandobot.tgbot.utils.database import async_db
 
 async def start(message: Message, bot: AsyncTeleBot):
     if await async_db.redis.scard("active.chats.id") >= 1000 and not await async_db.redis.sismember("active.chats.id", message.chat.id):

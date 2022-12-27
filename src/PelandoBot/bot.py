@@ -1,5 +1,5 @@
 import asyncio
-import promotion_scraper
+import pelandobot.promotion_scraper as promotion_scraper
 import logging
 import ssl
 from aiohttp import web
@@ -10,35 +10,35 @@ from multiprocessing import Process
 from telebot.types import BotCommand, BotCommandScopeAllPrivateChats, Update
 
 # Filters.
-from tgbot.filters.admin_filter import AdminFilter
+from pelandobot.tgbot.filters.admin_filter import AdminFilter
 
 # States.
 from telebot.asyncio_storage import StateRedisStorage
 from telebot.asyncio_filters import StateFilter
-from tgbot.states.register_state import UserStates
+from pelandobot.tgbot.states.register_state import UserStates
 
 # Handlers.
-from tgbot.handlers.start import start
-from tgbot.handlers.tags import tags
-from tgbot.handlers.stop import stop
-from tgbot.handlers.promo import promo
-from tgbot.handlers.help import help
+from pelandobot.tgbot.handlers.start import start
+from pelandobot.tgbot.handlers.tags import tags
+from pelandobot.tgbot.handlers.stop import stop
+from pelandobot.tgbot.handlers.promo import promo
+from pelandobot.tgbot.handlers.help import help
 
 # Callbacks.
-from tgbot.callbacks.callback_tags import tag_option_handler, handle_tags_input
+from pelandobot.tgbot.callbacks.callback_tags import tag_option_handler, handle_tags_input
 
 # Middlewares.
-from tgbot.middlewares.antiflood_middleware import AntiFloodMiddleware
-from tgbot.middlewares.group_migration_check import GroupMigrationMiddleware
+from pelandobot.tgbot.middlewares.antiflood_middleware import AntiFloodMiddleware
+from pelandobot.tgbot.middlewares.group_migration_check import GroupMigrationMiddleware
 
 # Synchronous database.
-from tgbot.utils.database import sync_db
+from pelandobot.tgbot.utils.database import sync_db
 
 # Telebot.
 from telebot.async_telebot import AsyncTeleBot
 
 # Config.
-from tgbot.config import TOKEN, HOST
+from pelandobot.tgbot.config import TOKEN, HOST
 
 WEBHOOK_HOST = HOST
 WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open').
