@@ -5,19 +5,64 @@ on:
   - pull_request
 
 jobs:
-  test:
+  test-ubuntu:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         python-version: ['3.8', '3.9', '3.10']
+    name: Test - ${{ matrix.os }} - Python ${{ matrix.python-version }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - name: Set up redis connection on localhost
+      run: |
+        sudo apt-get update
+        sudo apt-get install redis
+        sudo service redis-server start
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox tox-gh-actions
+    - name: Set locale to pt_BR.UTF-8
+      run: |
+        sudo locale-gen pt_BR.UTF-8
+        sudo update-locale LANG=pt_BR.UTF-8
+    - name: Test with tox
+      run: tox
+
+
+  test-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        python-version: ['3.8', '3.9', '3.10']
+    name: Test - ${{ matrix.os }} - Python ${{ matrix.python-version }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Debian WSL
+      uses: Vampire/setup-wsl@v1.3.4
+      with:
+        distribution: 'Debian'
+        use-cache: true
+        additional-packages:
+          redis
+    - name: Set up redis connection on localhost
+      shell: wsl-bash {0}
+      run: |
+        sudo service redis-server start
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
