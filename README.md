@@ -1,9 +1,12 @@
 <img src="./assets/logo.png" width="100%"/>
 
 <div align="center">
-    <h3 align="center">Pelando Bot</h3>
 
-A simple Telegram bot that delivers notifications on discounts, promo codes, etc, that appears in the [Pelando website](https://www.pelando.com.br). 
+[![Tests](https://github.com/GustavoJST/PelandoBot/actions/workflows/tests.yaml/badge.svg)](https://github.com/GustavoJST/PelandoBot/actions/workflows/tests.yaml)
+
+<h3 align="center">Pelando Bot</h3>
+
+A simple Telegram bot that delivers notifications on discounts, promo codes, etc, that appears in the [Pelando website](https://www.pelando.com.br).
 
 Click [here](https://t.me/pelandopromobot) or search **@pelandopromobot** on Telegram to use this bot.
 
