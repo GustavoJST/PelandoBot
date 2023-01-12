@@ -9,6 +9,8 @@
 A simple Telegram bot that delivers notifications on discounts, promo codes, etc, that appears in the [Pelando website](https://www.pelando.com.br).
 
 Click [here](https://t.me/pelandopromobot) or search **@pelandopromobot** on Telegram to use this bot.
+  
+**Pelando Bot is in active development.**
 
 Made using [PyTelegramBotApi](https://github.com/eternnoir/pyTelegramBotAPI).
 
