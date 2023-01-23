@@ -49,6 +49,10 @@ class PromotionScraper:
             }
         return params
 
+    def make_request(self, session: requests.Session, params):
+        data = session.get(self.url, params=params, headers=self.headers)
+        return data.json(), data.status_code
+
     def populate_db_with_promotions(self, data) -> None:
         # Populate the promotions_ids list with the latest promotions,
         # as we only want new promotions from now on.
@@ -82,13 +86,13 @@ class PromotionScraper:
             else locale.currency(float(promotion["price"]), grouping=True, symbol="R$")
         )
         promotion_url = f"https://www.pelando.com.br/d/{promotion['id']}"
-        promotion_image = promotion["image"]["original"]
-
-        # TODO: Remove this in cleanup if no necessary.
-        # Very rarely, no URL will be passed to the variable promotion_image
-        # using the "original" keyword.
-        """ if promotion_image is None:
-            promotion_image = promotion["image"]["large"] """
+        try:
+            promotion_image = promotion["image"]["original"]
+        except TypeError:
+            promotion_image = promotion["image"]["extraLarge"]
+        finally:
+            if promotion_image is None:
+                promotion_image = ""
 
         promotion_tags = self.get_promotion_tags(title)
 
@@ -127,10 +131,12 @@ class PromotionScraper:
     def promotion_scraper_loop(self):
         with requests.Session() as session:
             while True:
-                # time.sleep(8)
+                time.sleep(8)
                 params = self.get_params()
-                data = session.get(self.url, params=params, headers=self.headers)
-                data = data.json()
+                data, status_code = self.make_request(session, params)
+
+                if status_code != 200:
+                    continue
 
                 # Making GET requests to the URL rarely returns a persistedQuery error.
                 # The code below adds content check and restarts the loop if the content
