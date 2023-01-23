@@ -18,9 +18,9 @@ class GroupMigrationMiddleware(BaseMiddleware):
                 await async_db.redis.srem("active.chats.id", old_id)
                 await async_db.redis.sadd("active.chats.id", new_id)
 
-            for state in ["tags.", "state."]:
-                if await async_db.redis.exists(f"{state}" + f"{old_id}"):
-                    await async_db.redis.rename(f"{state}" + f"{old_id}", f"{state}" + f"{new_id}")
+                for state in ["tags.", "state."]:
+                    if await async_db.redis.exists(f"{state}{old_id}"):
+                        await async_db.redis.rename(f"{state}{old_id}", f"{state}{new_id}")
 
     # Don't delete this or it'll raise NotImplementedError.
     async def post_process(self, message, data, exception):
