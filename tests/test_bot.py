@@ -9,7 +9,6 @@ from tests.variables_and_parameters import (
 from pelandobot.bot import (
     clean_db,
     shutdown,
-    app_setup,
     TOKEN,
     WEBHOOK_HOST,
     WEBHOOK_PORT,
@@ -76,7 +75,7 @@ async def test_bot_webhook(bot_connection):
 
 @pytest.mark.asyncio
 async def test_bot_webhook_shutdown(bot_connection):
-    await shutdown(await app_setup())
+    await shutdown(bot_connection)
     url = f"https://api.telegram.org/bot{TOKEN}/getWebhookInfo"
     response = requests.get(url).json()
     assert response["result"]["url"] == ""
