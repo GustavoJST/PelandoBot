@@ -1,8 +1,8 @@
 import pytest
 import json
+import requests
 from pelandobot.promotion_scraper import PromotionScraper
 from pelandobot.tgbot.utils.database import sync_db
-from pelandobot.bot import clean_db
 from tests.variables_and_parameters import (
     TEST_POPULATE_DB_WITH_PROMOTIONS_EXPECTED as expected_promotions_id,
     TEST_GET_PROMOTION_TAGS_REGEX_PARAMS,
@@ -35,18 +35,24 @@ def test_get_params_com_first_query_false(scraper: PromotionScraper):
     assert params == target_params
 
 
-def test_populate_db_with_promotions(scraper: PromotionScraper):
-    clean_db()
+def test_check_request_status_code(scraper: PromotionScraper):
+    with requests.Session() as session:
+        params = scraper.get_params()
+        data, status_code = scraper.make_request(session, params)
+        assert status_code == 200
+
+
+def test_populate_db_with_promotions(scraper: PromotionScraper, prepare_db):
+
     with open("./tests/mock_data.json", "r") as json_file:
         mock_data = json.load(json_file)
     scraper.populate_db_with_promotions(mock_data)
     db_ids = sync_db.redis.lrange("promotions.id", 0, -1)
     assert db_ids == expected_promotions_id
-    clean_db()
 
 
 @pytest.mark.parametrize(
-    "test_input,expected_tags",
+    "test_input, expected_tags",
     TEST_GET_PROMOTION_TAGS_REGEX_PARAMS,
 )
 def test_get_promotion_tags_regex(scraper: PromotionScraper, test_input, expected_tags):
@@ -54,7 +60,7 @@ def test_get_promotion_tags_regex(scraper: PromotionScraper, test_input, expecte
     assert tags == expected_tags
 
 
-@pytest.mark.parametrize("test_input,expected_promotion_info", TEST_GET_PROMOTION_INFO_PARAMS)
+@pytest.mark.parametrize("test_input, expected_promotion_info", TEST_GET_PROMOTION_INFO_PARAMS)
 def test_get_promotion_info(test_input, expected_promotion_info):
     scraper = PromotionScraper()
     promotion_info = scraper.get_promotion_info(test_input)
@@ -88,26 +94,27 @@ def mock_data():
     }
 
 
-def test_push_promotions_to_db_exists_unsent_promotions(scraper: PromotionScraper, mock_data):
+def test_push_promotions_to_db_exists_unsent_promotions(
+    scraper: PromotionScraper, mock_data, prepare_db
+):
     scraper.push_promotion_to_db(mock_data)
     assert sync_db.redis.exists("unsent.promotions.id") == 1
-    clean_db()
 
 
-def test_push_promotions_to_db_exists_promotion_info_tags(scraper: PromotionScraper, mock_data):
+def test_push_promotions_to_db_exists_promotion_info_tags(
+    scraper: PromotionScraper, mock_data, prepare_db
+):
     scraper.push_promotion_to_db(mock_data)
     tags = sync_db.redis.smembers(f"promotion.{mock_data['id']}.tags")
     assert tags == mock_data["tags"]
-    clean_db()
 
 
-def test_push_promotions_to_db_exists_promotion_info(scraper: PromotionScraper, mock_data):
+def test_push_promotions_to_db_exists_promotion_info(scraper: PromotionScraper, mock_data, prepare_db):
     scraper.push_promotion_to_db(mock_data)
     promotion_info = sync_db.redis.hgetall(f"promotion.{mock_data['id']}.info")
     mock_data.pop("tags")
     mock_data.pop("id")
     assert promotion_info == mock_data
-    clean_db()
 
 
 def test_spawn_msender_process(scraper: PromotionScraper):

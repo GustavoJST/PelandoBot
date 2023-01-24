@@ -222,3 +222,65 @@ TEST_GET_PROMOTION_INFO_PARAMS = [
         },
     ),
 ]
+
+TEST_CLEAN_DB_DELETE_PROMOTION_INFO_DATA = [
+    {
+        "id": "45c2ba07-0e40-41a4-b7c1-5ec63ce39791",
+        "title": '[AME R$2960]Smart TV 65" Crystal UHD 4K Samsung 65BU8000 '
+        "(R$ 962,00 cashback pela ame)",
+        "price": "3699.99",
+        "url": "https://www.pelando.com.br/d/45c2ba07-0e40-41a4-b7c1-5ec63ce39791",
+        "image": "https://api.pelando.com.br/media/f55db4fb-074c-4a31-b102-eaa3a982e88b?v=2",
+        "tags": {
+            "65",
+            "samsung",
+            "smart",
+            "cashback",
+            "pela",
+            "tv",
+            "ame",
+            "4k",
+            "96200",
+            "65bu8000",
+            "2960",
+            "crystal",
+            "uhd",
+        },
+    },
+    {
+        "id": "215dfe1d-ed62-4a07-b8bf-71176d8b47fc",
+        "title": "Jogo Metro Last Light Redux - PC",
+        "price": "Grátis",
+        "url": "https://www.pelando.com.br/d/215dfe1d-ed62-4a07-b8bf-71176d8b47fc",
+        "image": "https://api.pelando.com.br/media/ff95c1ec-f330-4457-8221-186c6616c697?v=2",
+        "tags": {"jogo", "last", "redux", "metro", "pc", "light"},
+    }
+]
+
+TEST_WEBHOOK_MOCK_DATA = {
+    "update_id": 123456789,
+    "message": {
+        "message_id": 123,
+        "from": {
+            "id": 1588357893,
+            "is_bot": False,
+            "first_name": "Euae™",
+            "language_code": "pt-BR"
+        },
+        "date": 999999999999,
+        "chat": {
+            "id": 123456789,
+            "type": "private",
+            "first_name": "Testr",
+            "all_members_are_administrators": False
+        },
+        "forward_from_message_id": 0,
+        "text": "/stop",
+        "delete_chat_photo": False,
+        "group_chat_created": False,
+        "supergroup_chat_created": False,
+        "channel_chat_created": False,
+        "migrate_to_chat_id": None,
+        "migrate_from_chat_id": None
+    }
+}
