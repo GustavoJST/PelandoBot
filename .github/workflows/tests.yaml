@@ -78,11 +78,11 @@ jobs:
         - name: Create .env file for tox
     - name: Create .env file for tox
       run: |
-        echo HOST=${{ secrets.HOST }} | base64 --decode > ${HOME}/PelandoBot/.env
-        echo API_KEY=${{ secrets.API_KEY }} | base64 --decode >> ${HOME}/PelandoBot/.env
+        echo HOST=${{ secrets.HOST }} | base64 --decode > ./.env
+        echo API_KEY=${{ secrets.API_KEY }} | base64 --decode >> ./.env
     - name: Create webhook certificate files
       run: |
-        echo ${{ secrets.WEBHOOK_CERT }} | base64 --decode > ${HOME}/PelandoBot/webhook_cert.pem
-        echo ${{ secrets.WEBHOOK_PKEY }} | base64 --decode > ${HOME}/PelandoBot/webhook_pkey.pem
+        echo ${{ secrets.WEBHOOK_CERT }} | base64 --decode > ./webhook_cert.pem
+        echo ${{ secrets.WEBHOOK_PKEY }} | base64 --decode > ./webhook_pkey.pem
     - name: Test with tox
       run: tox
