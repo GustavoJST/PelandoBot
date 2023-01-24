@@ -4,11 +4,16 @@ import asyncio
 import timeit
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pelandobot.tgbot.utils.database import sync_db
-from pelandobot.tgbot.config import DEV_CHAT_ID
 
 
 def prepare_process():
     asyncio.run(send_message())
+
+
+async def delete_promotion(promotion_id):
+    sync_db.redis.lrem("unsent.promotions.id", 1, promotion_id)
+    sync_db.redis.delete(f"promotion.{promotion_id}.info")
+    sync_db.redis.delete(f"promotion.{promotion_id}.tags")
 
 
 async def task_scheduler(tasks, chat_id, message, button, image=None, last_retry=False):
@@ -42,7 +47,7 @@ async def send_message():
         for promotion_id in unsent_promotions:
             promotion_info = sync_db.redis.hgetall(f"promotion.{promotion_id}.info")
             try:
-                image = promotion_info["image"]
+                image = None if promotion_info["image"] == "" else promotion_info["image"]
                 message = (
                     f"🚨  PROMOÇÃO  🚨\n\n"
                     f"🔥  {promotion_info['title']}  🔥\n\n"
@@ -56,6 +61,7 @@ async def send_message():
                     logfile.write(f"\nAdditional info:\n {promotion_info}")
                     logfile.write("\n\n\n\n")
                     print("\n\nException Logged Successfully!\n\n")
+                    await delete_promotion(promotion_id)
                     continue
 
             active_chats_id_tmp = active_chats_id.copy()
@@ -114,16 +120,13 @@ async def send_message():
                             logfile.write(f"\nAdditional info:\n{promotion_info}")
                             logfile.write("\n\n\n\n")
                             print("\n\nException logged successfully!\n\n")
-                            bot.bot.send_message(DEV_CHAT_ID, "Unknown exception detected. Check logs!")
                             tasks.pop(task)
                         logfile.close()
 
                 # Limits the message sent rate so it doesn't trigger 429 errors.
                 await asyncio.sleep(2)
 
-            sync_db.redis.lrem("unsent.promotions.id", 1, promotion_id)
-            sync_db.redis.delete(f"promotion.{promotion_id}.info")
-            sync_db.redis.delete(f"promotion.{promotion_id}.tags")
+            await delete_promotion(promotion_id)
 
     # TODO: Remove this later
     print(f"send_message - elapsed time = {timeit.default_timer() - start}")

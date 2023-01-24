@@ -51,8 +51,8 @@ WEBHOOK_LISTEN = "0.0.0.0"  # In some VPS you may need to put here the IP addres
 #
 # When asked for "Common Name (e.g. server FQDN or YOUR name)" you should reply
 # with the same value in you put in WEBHOOK_HOST.
-WEBHOOK_SSL_CERT = "./webhook_cert_dev.pem"  # Path to the ssl certificate.
-WEBHOOK_SSL_PRIV = "./webhook_pkey_dev.pem"  # Path to the ssl private key.
+WEBHOOK_SSL_CERT = "./webhook_cert.pem"  # Path to the ssl certificate.
+WEBHOOK_SSL_PRIV = "./webhook_pkey.pem"  # Path to the ssl private key.
 WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
 
@@ -186,7 +186,7 @@ async def bot_setup() -> None:
     bot.add_custom_filter(StateFilter(bot))
 
 
-async def setup() -> web.Application:
+async def app_setup() -> web.Application:
     # Setup bot.
     await bot_setup()
     # Remove webhook, it fails sometimes the set if there is a previous webhook.
@@ -204,18 +204,20 @@ async def setup() -> web.Application:
     return app
 
 
-if __name__ == "__main__":
-    clean_db()
-    promotion_scraper_process = Process(
-        target=promotion_scraper.PromotionScraper().promotion_scraper_loop
-    ).start()
+def start_bot():
     # Build ssl context.
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV)
     # Start aiohttp server.
     web.run_app(
-        setup(),
+        app_setup(),
         host=WEBHOOK_LISTEN,
         port=WEBHOOK_PORT,
         ssl_context=context,
     )
+
+
+if __name__ == "__main__":
+    clean_db()
+    Process(target=promotion_scraper.PromotionScraper().promotion_scraper_loop).start()
+    start_bot()
