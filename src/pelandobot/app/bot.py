@@ -1,10 +1,11 @@
 import asyncio
-import pelandobot.scraper.promotion_scraper as promotion_scraper
 import logging
 import ssl
 from aiohttp import web
-from telebot import logger
 from multiprocessing import Process
+
+# Logger
+from telebot import logger
 
 # Scraper
 import pelandobot.scraper.promotion_scraper as promotion_scraper
@@ -222,5 +223,4 @@ def start_bot():
 
 if __name__ == "__main__":
     clean_db()
-    Process(target=promotion_scraper.PromotionScraper().promotion_scraper_loop).start()
     start_bot()

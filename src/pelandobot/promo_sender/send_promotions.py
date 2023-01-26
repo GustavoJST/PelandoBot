@@ -2,12 +2,16 @@ import pelandobot.app.bot as bot
 import traceback
 import asyncio
 import timeit
+import time
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pelandobot.tgbot.utils.database import sync_db
 
 
-def prepare_process():
-    asyncio.run(send_message())
+async def func_loop():
+    while True:
+        time.sleep(2)
+        if sync_db.redis.exists("unsent.promotions.id"):
+            await send_message()
 
 
 async def delete_promotion(promotion_id):
@@ -39,8 +43,6 @@ async def send_message():
     start = timeit.default_timer()
     while sync_db.redis.exists("unsent.promotions.id"):
         tasks = dict()
-        # TODO: Remove this later
-        start = timeit.default_timer()
         active_chats_id = sync_db.redis.smembers("active.chats.id")
         unsent_promotions = sync_db.redis.lrange("unsent.promotions.id", 0, -1)
 
@@ -80,7 +82,6 @@ async def send_message():
                 [active_chats_id_tmp.discard(chat) for chat in chats_to_remove]
 
                 start_asyncio = timeit.default_timer()
-                # TODO: Talvez seja mais eficiente usar ALL_COMPLETED ao invés de FIRST_EXCEPTION
                 done, pending = await asyncio.wait(tasks.keys(), return_when=asyncio.ALL_COMPLETED)
                 print(f"asyncio.wait - elapsed time = {timeit.default_timer() - start_asyncio}")
 
@@ -123,6 +124,7 @@ async def send_message():
                             tasks.pop(task)
                         logfile.close()
 
+                    tasks.pop(task)
                 # Limits the message sent rate so it doesn't trigger 429 errors.
                 await asyncio.sleep(2)
 
@@ -130,3 +132,6 @@ async def send_message():
 
     # TODO: Remove this later
     print(f"send_message - elapsed time = {timeit.default_timer() - start}")
+
+if __name__ == "__main__":
+    asyncio.run(func_loop())

@@ -160,9 +160,6 @@ class PromotionScraper:
                     promotion_info = self.get_promotion_info(promotion)
                     self.push_promotion_to_db(promotion_info)
 
-                if sync_db.redis.exists("unsent.promotions.id"):
-                    if not self.active_process:
-                        m_sender = self.spawn_msender_process()
-
-                    if not m_sender.is_alive() and sync_db.redis.exists("unsent.promotions.id"):
-                        self.active_process = False
+if __name__ == "__main__":
+    loop = PromotionScraper()
+    loop.promotion_scraper_loop()
