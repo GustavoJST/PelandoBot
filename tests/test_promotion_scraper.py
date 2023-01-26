@@ -1,7 +1,7 @@
 import pytest
 import json
 import requests
-from pelandobot.promotion_scraper import PromotionScraper
+from pelandobot.scraper.promotion_scraper import PromotionScraper
 from pelandobot.tgbot.utils.database import sync_db
 from tests.variables_and_parameters import (
     TEST_POPULATE_DB_WITH_PROMOTIONS_EXPECTED as expected_promotions_id,
@@ -115,8 +115,3 @@ def test_push_promotions_to_db_exists_promotion_info(scraper: PromotionScraper, 
     mock_data.pop("tags")
     mock_data.pop("id")
     assert promotion_info == mock_data
-
-
-def test_spawn_msender_process(scraper: PromotionScraper):
-    m_sender = scraper.spawn_msender_process()
-    assert m_sender is not None

@@ -6,7 +6,7 @@ from tests.variables_and_parameters import (
     TEST_POPULATE_DB_WITH_PROMOTIONS_EXPECTED as mock_ids,
     TEST_WEBHOOK_MOCK_DATA as mock_json,
 )
-from pelandobot.bot import (
+from pelandobot.app.bot import (
     clean_db,
     shutdown,
     TOKEN,
