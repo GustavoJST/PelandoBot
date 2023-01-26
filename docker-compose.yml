@@ -1,0 +1,50 @@
+version: '3.4'
+
+services:
+  bot:
+    depends_on:
+      - database
+    build:
+      context: ./src/pelandobot/app
+    ports:
+      - "8443:8443"
+    links:
+      - database
+    environment:
+      - HOST=${HOST}
+      - API_KEY=${API_KEY}
+    volumes:
+      - ./.env:/pelando_bot/.env
+      - ./webhook_cert_dev.pem:/pelando_bot/webhook_cert_dev.pem
+      - ./webhook_pkey_dev.pem:/pelando_bot/webhook_pkey_dev.pem
+    restart: always
+
+  scraper:
+    depends_on:
+      - database
+      - bot
+    build:
+      context: ./src/pelandobot/scraper
+    links:
+      - database
+    restart: always
+
+  promo-sender:
+    depends_on:
+      - scraper
+    build:
+      context: ./src/pelandobot/promo_sender
+    links:
+      - database
+    restart: always
+    environment:
+      - HOST=${HOST}
+      - API_KEY=${API_KEY}
+
+  database:
+    image: redis
+    ports:
+      - "6379:6379"
+    expose:
+      - "6379"
+    restart: always
