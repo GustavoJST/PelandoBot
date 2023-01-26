@@ -1,10 +1,13 @@
 import asyncio
-import pelandobot.promotion_scraper as promotion_scraper
+import pelandobot.scraper.promotion_scraper as promotion_scraper
 import logging
 import ssl
 from aiohttp import web
 from telebot import logger
 from multiprocessing import Process
+
+# Scraper
+import pelandobot.scraper.promotion_scraper as promotion_scraper
 
 # Types.
 from telebot.types import BotCommand, BotCommandScopeAllPrivateChats, Update

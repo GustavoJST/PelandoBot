@@ -2,7 +2,7 @@ import re
 import requests
 import time
 import locale
-import pelandobot.send_promotions as send_promotions
+import pelandobot.promo_sender.send_promotions as send_promotions
 from pelandobot.tgbot.utils.database import sync_db
 from multiprocessing import Process
 from typing import Dict, Set
