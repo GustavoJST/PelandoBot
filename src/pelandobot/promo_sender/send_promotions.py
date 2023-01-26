@@ -133,5 +133,6 @@ async def send_message():
     # TODO: Remove this later
     print(f"send_message - elapsed time = {timeit.default_timer() - start}")
 
+
 if __name__ == "__main__":
     asyncio.run(func_loop())

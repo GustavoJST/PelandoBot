@@ -2,13 +2,9 @@ import asyncio
 import logging
 import ssl
 from aiohttp import web
-from multiprocessing import Process
 
 # Logger
 from telebot import logger
-
-# Scraper
-import pelandobot.scraper.promotion_scraper as promotion_scraper
 
 # Types.
 from telebot.types import BotCommand, BotCommandScopeAllPrivateChats, Update
