@@ -160,6 +160,7 @@ class PromotionScraper:
                     promotion_info = self.get_promotion_info(promotion)
                     self.push_promotion_to_db(promotion_info)
 
+
 if __name__ == "__main__":
     loop = PromotionScraper()
     loop.promotion_scraper_loop()
