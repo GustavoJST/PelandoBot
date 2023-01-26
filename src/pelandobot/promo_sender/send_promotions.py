@@ -1,4 +1,4 @@
-import pelandobot.bot as bot
+import pelandobot.app.bot as bot
 import traceback
 import asyncio
 import timeit
