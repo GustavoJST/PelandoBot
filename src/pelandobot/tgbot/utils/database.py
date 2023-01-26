@@ -1,3 +1,4 @@
+import os
 # aioredis
 from redis import asyncio as aioredis
 from redis import Redis
@@ -6,7 +7,10 @@ from redis import Redis
 # Create a connection
 class AsyncDatabase:
     def __init__(self) -> None:
-        self.redis = aioredis.from_url("redis://localhost", decode_responses=True)
+        if os.getenv("TESTS"):
+            self.redis = aioredis.from_url("redis://localhost:6379", decode_responses=True)
+        else:
+            self.redis = aioredis.from_url("redis://database:6379", decode_responses=True)
 
     async def add_user(self, chat_id: int) -> None:
         await self.redis.sadd("active.chats.id", chat_id)
@@ -22,7 +26,10 @@ class AsyncDatabase:
 
 class SyncDatabase:
     def __init__(self) -> None:
-        self.redis = Redis.from_url("redis://localhost", decode_responses=True)
+        if os.getenv("TESTS"):
+            self.redis = Redis.from_url("redis://localhost:6379", decode_responses=True)
+        else:
+            self.redis = Redis.from_url("redis://database:6379", decode_responses=True)
 
     def add_user(self, chat_id: int) -> None:
         self.redis.sadd("active.chats.id", chat_id)
