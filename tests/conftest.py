@@ -1,6 +1,6 @@
 import pytest
-from pelandobot.promotion_scraper import PromotionScraper
-from pelandobot.bot import start_bot
+from pelandobot.scraper.promotion_scraper import PromotionScraper
+from pelandobot.app.bot import start_bot
 from pelandobot.tgbot.utils.database import sync_db
 from multiprocessing import Process
 
