@@ -1,11 +1,9 @@
 name: Build and push
 
 on:
-  workflow_run:
-    workflows: ["Tests"]
-    types:
-      - completed
-    branches: [main]
+  push:
+    branches:
+      - main
 
 jobs:
   build-push-base-image:
