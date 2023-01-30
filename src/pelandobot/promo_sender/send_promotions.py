@@ -124,7 +124,8 @@ async def send_message():
                             tasks.pop(task)
                         logfile.close()
 
-                    tasks.pop(task)
+                    else:
+                        tasks.pop(task)
                 # Limits the message sent rate so it doesn't trigger 429 errors.
                 await asyncio.sleep(2)
 
