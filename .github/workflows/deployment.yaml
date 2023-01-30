@@ -24,7 +24,8 @@ jobs:
           REMOTE_USER: "ubuntu"
           TARGET: "/home/ubuntu/pelandobot"
           SCRIPT_AFTER: |
-            echo HOST=${{ secrets.HOST }} > ./pelandobot/.env
-            echo API_KEY=${{ secrets.API_KEY }} >> ./pelandobot/.env
-            echo ${{ secrets.WEBHOOK_CERT }} | base64 --decode > ./pelandobot/webhook_cert.pem
-            echo ${{ secrets.WEBHOOK_PKEY }} | base64 --decode > ./pelandobot/webhook_pkey.pem
+            echo HOST=${{ secrets.HOST }} > ./Pelandobot/.env
+            echo API_KEY=${{ secrets.API_KEY }} >> ./Pelandobot/.env
+            echo ${{ secrets.WEBHOOK_CERT }} | base64 --decode > ./Pelandobot/webhook_cert.pem
+            echo ${{ secrets.WEBHOOK_PKEY }} | base64 --decode > ./Pelandobot/webhook_pkey.pem
+            cd ./Pelandobot && docker compose up -d
