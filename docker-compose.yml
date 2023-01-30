@@ -15,8 +15,6 @@ services:
       - API_KEY=${API_KEY}
     volumes:
       - ./.env:/pelando_bot/.env
-      - ./webhook_cert_dev.pem:/pelando_bot/webhook_cert_dev.pem
-      - ./webhook_pkey_dev.pem:/pelando_bot/webhook_pkey_dev.pem
     restart: always
 
   scraper:
@@ -47,4 +45,6 @@ services:
       - "6379:6379"
     expose:
       - "6379"
+    volumes:
+      - ./redis-data:/data
     restart: always
