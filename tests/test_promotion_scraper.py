@@ -1,6 +1,5 @@
 import pytest
 import json
-import requests
 from pelandobot.scraper.promotion_scraper import PromotionScraper
 from pelandobot.tgbot.utils.database import sync_db
 from tests.variables_and_parameters import (
