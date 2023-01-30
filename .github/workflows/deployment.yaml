@@ -28,4 +28,5 @@ jobs:
             echo API_KEY=${{ secrets.API_KEY }} >> ./Pelandobot/.env
             echo ${{ secrets.WEBHOOK_CERT }} | base64 --decode > ./Pelandobot/webhook_cert.pem
             echo ${{ secrets.WEBHOOK_PKEY }} | base64 --decode > ./Pelandobot/webhook_pkey.pem
-            cd ./Pelandobot && docker compose up -d
+            cd ./Pelandobot
+            docker compose up -d && echo Deployment successful!

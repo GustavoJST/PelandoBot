@@ -1,17 +1,10 @@
-import requests
-import pytest
 from pelandobot.tgbot.utils.database import sync_db
 from tests.variables_and_parameters import (
     TEST_CLEAN_DB_DELETE_PROMOTION_INFO_DATA as promo_mock_data,
     TEST_POPULATE_DB_WITH_PROMOTIONS_EXPECTED as mock_ids,
-    TEST_WEBHOOK_MOCK_DATA as mock_json,
 )
 from pelandobot.app.bot import (
     clean_db,
-    shutdown,
-    TOKEN,
-    WEBHOOK_HOST,
-    WEBHOOK_PORT,
     CHAT_TYPES,
 )
 
