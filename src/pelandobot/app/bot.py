@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import ssl
+import os
 from aiohttp import web
 
 # Logger
@@ -58,7 +59,11 @@ WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
 
 CHAT_TYPES = ["private", "group", "supergroup"]
 
-bot = AsyncTeleBot(TOKEN, state_storage=StateRedisStorage(prefix="state."))
+redis_storage = StateRedisStorage(
+    host="localhost" if os.getenv("TESTS") else "database", prefix="state."
+)
+
+bot = AsyncTeleBot(TOKEN, state_storage=redis_storage)
 logger = logger
 logger.setLevel(logging.DEBUG)
 
