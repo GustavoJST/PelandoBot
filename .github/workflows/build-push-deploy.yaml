@@ -1,4 +1,4 @@
-name: Build and push
+name: Build, push and deploy
 
 on:
   push:
@@ -65,3 +65,29 @@ jobs:
           push: true
           file: ${{ matrix.dockerfile }}
           tags: ${{ matrix.slug }}:latest
+
+
+  deploy:
+    needs: build-push-child-images
+    runs-on: ubuntu-latest
+    name: Deploy to EC2 instance
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy via ssh
+        uses: easingthemes/ssh-deploy@v4.0.5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          SOURCE: "./"
+          REMOTE_HOST: "ec2-54-233-192-136.sa-east-1.compute.amazonaws.com"
+          REMOTE_USER: "ubuntu"
+          TARGET: "/home/ubuntu/pelandoBot"
+          SCRIPT_AFTER: |
+            echo HOST=${{ secrets.HOST }} > ./pelandoBot/.env
+            echo API_KEY=${{ secrets.API_KEY }} >> ./pelandoBot/.env
+            echo ${{ secrets.WEBHOOK_CERT }} | base64 --decode > ./pelandoBot/src/pelandobot/app/webhook_cert.pem
+            echo ${{ secrets.WEBHOOK_PKEY }} | base64 --decode > ./pelandoBot/src/pelandobot/app/webhook_pkey.pem
+            cd ./pelandoBot
+            mkdir -p redis-data
+            docker compose up -d && echo Deployment successful!
