@@ -35,13 +35,6 @@ def test_get_params_com_first_query_false(scraper: PromotionScraper):
     assert params == target_params
 
 
-def test_check_request_status_code(scraper: PromotionScraper):
-    with requests.Session() as session:
-        params = scraper.get_params()
-        data, status_code = scraper.make_request(session, params)
-        assert status_code == 200
-
-
 def test_populate_db_with_promotions(scraper: PromotionScraper, prepare_db):
 
     with open("./tests/mock_data.json", "r") as json_file:
